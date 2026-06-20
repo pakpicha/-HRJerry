@@ -154,7 +154,7 @@
 </div>
 
 <script>
-/* ====== ตั้งค่า: ลิงก์ Apps Script (เปลี่ยนตรงนี้ถ้า redeploy ใหม่) ====== */
+/* ====== ตั้งค่า: ลิงก์ Apps Script (เปลี่ยนตรงนี้ถ้า redeploy เป็นลิงก์ใหม่) ====== */
 var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
 
 /* ====== เครื่องคิดเลขลงเวลา (กฎ 480 นาที + พักล็อก 1 ชม.) ====== */
@@ -208,7 +208,7 @@ function showMsg(text, type) {
   m.className = 'msg show ' + type;
 }
 
-/* ====== บันทึก (POST) ====== */
+/* ====== บันทึก (POST แบบ no-cors เพื่อให้เขียนผ่านชัวร์) ====== */
 function saveRecord() {
   var userId = val('userId').trim();
   if (!userId) { showMsg('กรุณากรอกชื่อ/รหัสพนักงานก่อน', 'error'); return; }
@@ -227,31 +227,42 @@ function saveRecord() {
   var btn = document.getElementById('saveBtn');
   btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
 
-  /* ไม่ตั้ง Content-Type เพื่อเลี่ยง CORS preflight ของ Apps Script */
-  fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
-    .then(function () {
-      showMsg('บันทึกสำเร็จ ✓ ข้อมูลเข้า Google Sheet แล้ว', 'success');
-    })
-    .catch(function () {
-      /* บางครั้งอ่าน response ไม่ได้เพราะ CORS แต่ข้อมูลถูกเขียนแล้ว เลยรีโหลดเช็คจากชีตจริง */
-      showMsg('ส่งข้อมูลแล้ว กำลังตรวจสอบจากชีต...', 'success');
-    })
-    .then(function () {
-      btn.disabled = false; btn.textContent = 'บันทึกเข้า Google Sheet';
-      setTimeout(loadData, 800);
-    });
+  function afterSend() {
+    btn.disabled = false; btn.textContent = 'บันทึกเข้า Google Sheet';
+    showMsg('ส่งข้อมูลแล้ว ✓ กำลังดึงตารางจากชีตมาตรวจ...', 'success');
+    setTimeout(loadData, 1500);
+  }
+
+  /* no-cors: ส่ง body ได้ปกติ Apps Script รับได้ แค่อ่าน response กลับไม่ได้ จึงรีโหลดตารางมาเช็คแทน */
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+    .then(afterSend)
+    .catch(afterSend);
 }
 
-/* ====== ดึงข้อมูล (GET) ====== */
+/* ====== ดึงข้อมูล (GET แบบ JSONP เพื่อเลี่ยง CORS) ====== */
 function loadData() {
   var tbody = document.getElementById('tbody');
   tbody.innerHTML = '<tr><td colspan="5" class="empty">กำลังโหลด...</td></tr>';
-  fetch(API_URL)
-    .then(function (r) { return r.json(); })
-    .then(function (rows) { render(rows); })
-    .catch(function () {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty">โหลดไม่ได้ — ลองเปิดผ่าน https (GitHub Pages) แทนการเปิดไฟล์ตรงๆ</td></tr>';
-    });
+
+  var cb = 'jsonp_' + Date.now();
+  var script = document.createElement('script');
+
+  window[cb] = function (rows) {
+    render(rows);
+    cleanup();
+  };
+  function cleanup() {
+    try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }
+
+  script.onerror = function () {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">โหลดไม่ได้ — ตรวจสอบว่า Deploy ตั้งสิทธิ์เป็น "ทุกคน" และ redeploy เป็นเวอร์ชันใหม่แล้ว</td></tr>';
+    cleanup();
+  };
+
+  script.src = API_URL + '?callback=' + cb + '&t=' + Date.now();
+  document.body.appendChild(script);
 }
 
 function fmtDate(v) {
@@ -274,10 +285,9 @@ function badgeFor(status) {
 function render(rows) {
   var tbody = document.getElementById('tbody');
   if (!rows || rows.length <= 1) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">ยังไม่มีข้อมูล ลองบันทึกรายการแรกด้านบน</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">เชื่อมต่อสำเร็จ ✓ ยังไม่มีข้อมูล ลองบันทึกรายการแรกด้านบน</td></tr>';
     return;
   }
-  /* แถวแรกเป็นหัวคอลัมน์ ข้ามไป แล้วแสดงรายการใหม่สุดก่อน */
   var html = '';
   for (var i = rows.length - 1; i >= 1; i--) {
     var r = rows[i];
