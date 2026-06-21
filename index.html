@@ -3,324 +3,183 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบลงเวลาทำงาน · Smart HR</title>
+<title>Smart HR &amp; Payroll</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    margin: 0; background: #f1f5f9; color: #1e293b;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Helvetica Neue", Arial, sans-serif;
-  }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 0 14px 60px; }
-  header {
-    background: linear-gradient(90deg, #1d4ed8, #312e81);
-    color: #fff; padding: 16px; position: sticky; top: 0; z-index: 10;
-    box-shadow: 0 2px 10px rgba(0,0,0,.12);
-  }
-  .hd { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
-  .hd .ico { font-size: 26px; }
-  header h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: .3px; }
-  header p { font-size: 12px; margin: 2px 0 0; color: #c7d2fe; }
-  .card {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
-    padding: 18px; margin-top: 16px;
-  }
-  .card h2 { font-size: 16px; margin: 0 0 4px; color: #0f172a; }
-  .card .sub { font-size: 12px; color: #64748b; margin: 0 0 14px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  @media (min-width: 560px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
-  label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #64748b; }
-  label.f.full { grid-column: 1 / -1; }
-  input, select {
-    width: 100%; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 10px;
-    font-size: 14px; background: #fff; color: #1e293b; font-family: inherit;
-  }
-  input:focus, select:focus { outline: none; border-color: #2563eb; }
-  .chk { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #334155; margin-top: 24px; }
-  .chk input { width: auto; }
-  .preview {
-    margin-top: 14px; border-radius: 12px; padding: 12px 14px; border: 1px solid;
-    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
-    font-size: 13px;
-  }
-  .preview.ok { background: #ecfdf5; border-color: #a7f3d0; }
-  .preview.late { background: #fef2f2; border-color: #fecaca; }
-  .preview.absent { background: #f8fafc; border-color: #e2e8f0; }
-  .preview b { color: #0f172a; }
-  .badge { font-weight: 700; font-size: 12px; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
-  .b-ok { background: #d1fae5; color: #065f46; }
-  .b-late { background: #fee2e2; color: #b91c1c; }
-  .b-absent { background: #e2e8f0; color: #475569; }
-  .b-present { background: #dbeafe; color: #1d4ed8; }
-  button.primary {
-    margin-top: 14px; width: 100%; background: #2563eb; color: #fff; border: 0;
-    padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer;
-    font-family: inherit;
-  }
-  button.primary:active { background: #1d4ed8; }
-  button.primary:disabled { background: #cbd5e1; cursor: default; }
-  .msg { margin-top: 10px; font-size: 13px; padding: 10px 12px; border-radius: 10px; display: none; }
-  .msg.show { display: block; }
-  .msg.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-  .msg.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-  .tablewrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; padding: 10px; background: #f8fafc; color: #475569; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
-  td { padding: 10px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
-  .red { color: #dc2626; font-weight: 600; }
-  .muted { color: #94a3b8; }
-  .empty { text-align: center; color: #94a3b8; padding: 24px; font-size: 13px; }
-  .row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .refresh { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: #475569; font-family: inherit; }
-  footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 22px; }
+  body { margin: 0; background: #f1f5f9; color: #1e293b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Helvetica Neue", Arial, sans-serif; }
+
+  /* ===== LOGIN VIEW ===== */
+  #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1d4ed8, #312e81); padding: 20px; }
+  .box { background: #fff; width: 100%; max-width: 380px; border-radius: 22px; padding: 30px 26px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.28); }
+  .logo { text-align: center; font-size: 40px; margin-bottom: 6px; }
+  .box h1 { text-align: center; font-size: 20px; margin: 0 0 2px; color: #0f172a; }
+  .box .sub { text-align: center; font-size: 12px; color: #64748b; margin: 0 0 22px; }
+  .box label { display: block; font-size: 12px; color: #475569; font-weight: 600; margin: 12px 0 5px; }
+  .box input { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 15px; color: #1e293b; font-family: inherit; }
+  .box input:focus { outline: none; border-color: #2563eb; }
+  .box button { width: 100%; margin-top: 20px; background: #2563eb; color: #fff; border: 0; padding: 13px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .box button:active { background: #1d4ed8; }
+  .box button:disabled { background: #93c5fd; }
+  .err { display: none; margin-top: 14px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 10px 12px; border-radius: 10px; font-size: 13px; text-align: center; }
+  .err.show { display: block; }
+  .hint { margin-top: 18px; font-size: 11px; color: #94a3b8; text-align: center; line-height: 1.6; }
+
+  /* ===== HUB VIEW ===== */
+  #hubView { display: none; }
+  header { background: linear-gradient(90deg, #1d4ed8, #312e81); color: #fff; padding: 22px 16px; box-shadow: 0 2px 14px rgba(0,0,0,.14); }
+  .hd { max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+  .hd .ico { font-size: 30px; }
+  header h1 { font-size: 20px; margin: 0; font-weight: 800; }
+  header p { font-size: 12px; margin: 3px 0 0; color: #c7d2fe; }
+  .logout { margin-left: auto; background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.3); padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .who { max-width: 900px; margin: 16px auto 0; padding: 0 16px; display: flex; align-items: center; gap: 10px; }
+  .ava { width: 40px; height: 40px; border-radius: 50%; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .who .nm { font-weight: 700; color: #0f172a; }
+  .who .role { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+  .role.admin { background: #fef3c7; color: #92400e; }
+  .role.employee { background: #dbeafe; color: #1d4ed8; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 60px; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 18px; }
+  @media (min-width: 600px) { .grid { grid-template-columns: 1fr 1fr; } }
+  a.tile { text-decoration: none; color: inherit; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 22px; display: flex; gap: 16px; align-items: flex-start; transition: transform .12s, box-shadow .12s, border-color .12s; }
+  a.tile:active { transform: scale(.98); }
+  a.tile:hover { box-shadow: 0 6px 20px rgba(30,64,175,.12); border-color: #c7d2fe; }
+  .tile .badge { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+  .b1 { background: #dbeafe; } .b2 { background: #dcfce7; } .b3 { background: #ede9fe; } .b4 { background: #ffedd5; }
+  .tile h2 { font-size: 16px; margin: 2px 0 4px; color: #0f172a; }
+  .tile p { font-size: 12px; margin: 0; color: #64748b; line-height: 1.5; }
+  .arrow { margin-left: auto; color: #cbd5e1; font-size: 20px; align-self: center; }
+  footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 26px; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="hd">
-    <span class="ico">🛡️</span>
-    <div>
-      <h1>ระบบลงเวลาทำงาน</h1>
-      <p>ลอจิกยืดหยุ่น 480 นาที · บันทึกลง Google Sheet อัตโนมัติ</p>
+  <!-- ========== หน้าล็อกอิน ========== -->
+  <div id="loginView">
+    <div class="box">
+      <div class="logo">🛡️</div>
+      <h1>Smart HR &amp; Payroll</h1>
+      <p class="sub">เข้าสู่ระบบเพื่อใช้งาน</p>
+      <label>ชื่อผู้ใช้ (username)</label>
+      <input type="text" id="username" autocomplete="username" placeholder="เช่น admin">
+      <label>รหัสผ่าน</label>
+      <input type="password" id="password" autocomplete="current-password" placeholder="รหัสผ่าน">
+      <button id="btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+      <div id="err" class="err"></div>
+      <div class="hint">ครั้งแรกให้สร้างแท็บ Users ในชีต แล้วเพิ่มผู้ใช้ก่อน</div>
     </div>
   </div>
-</header>
 
-<div class="wrap">
-
-  <div class="card">
-    <h2>บันทึกเวลาเข้า–ออกงาน</h2>
-    <p class="sub">เข้างานสายได้ ถ้าทำงานครบ 8 ชม. (หักพัก) = ไม่ถูกปรับ · ขาดจะคิดค่าปรับรายนาที</p>
-    <div class="grid">
-      <label class="f full">พนักงาน (ชื่อหรือรหัส)
-        <input type="text" id="userId" placeholder="เช่น สมชาย หรือ 1">
-      </label>
-      <label class="f">วันที่
-        <input type="date" id="date">
-      </label>
-      <label class="f">เข้างาน
-        <input type="time" id="checkIn" value="10:00">
-      </label>
-      <label class="f">ออกงาน
-        <input type="time" id="checkOut" value="19:00">
-      </label>
-      <label class="f">เริ่มพัก
-        <input type="time" id="breakStart" value="12:00">
-      </label>
-      <label class="f">เลิกพัก
-        <input type="time" id="breakEnd" value="13:00">
-      </label>
-      <label class="f">ค่าปรับ (บาท/นาที)
-        <input type="number" id="rate" value="2" min="0">
-      </label>
-      <label class="chk">
-        <input type="checkbox" id="isWfh"> ทำงานที่บ้าน (WFH)
-      </label>
-    </div>
-
-    <div id="preview" class="preview ok">
-      <span id="previewText">กรอกเวลาเพื่อดูผลการคำนวณ</span>
-      <span id="previewBadge" class="badge b-ok">—</span>
-    </div>
-
-    <button class="primary" id="saveBtn" onclick="saveRecord()">บันทึกเข้า Google Sheet</button>
-    <div id="msg" class="msg"></div>
-  </div>
-
-  <div class="card">
-    <div class="row-top">
-      <div>
-        <h2>ประวัติการลงเวลา</h2>
-        <p class="sub" style="margin:0">ดึงจาก Google Sheet โดยตรง</p>
+  <!-- ========== หน้าเมนูหลัก ========== -->
+  <div id="hubView">
+    <header>
+      <div class="hd">
+        <span class="ico">🛡️</span>
+        <div>
+          <h1>Smart HR &amp; Payroll</h1>
+          <p>ระบบบริหารบุคคล · เชื่อม Google Sheet</p>
+        </div>
+        <button class="logout" onclick="logout()">ออกจากระบบ</button>
       </div>
-      <button class="refresh" onclick="loadData()">↻ รีเฟรช</button>
+    </header>
+    <div class="who">
+      <div class="ava" id="ava">👤</div>
+      <div><span class="nm" id="whoName">—</span> <span class="role" id="whoRole">—</span></div>
     </div>
-    <div class="tablewrap" style="margin-top:12px">
-      <table>
-        <thead>
-          <tr>
-            <th>วันที่</th><th>พนักงาน</th><th>เข้า–ออก</th><th>สถานะ</th><th>ค่าปรับ</th>
-          </tr>
-        </thead>
-        <tbody id="tbody">
-          <tr><td colspan="5" class="empty">กำลังโหลด...</td></tr>
-        </tbody>
-      </table>
+    <div class="wrap">
+      <div class="grid" id="menu"></div>
+      <footer>Smart HR &amp; Payroll · หน้าหลัก</footer>
     </div>
   </div>
-
-  <footer>ข้อมูลจัดเก็บใน Google Sheet ของคุณ · ระบบนี้เป็นเดโมเริ่มต้น</footer>
-</div>
 
 <script>
-/* ====== ตั้งค่า: ลิงก์ Apps Script (เปลี่ยนตรงนี้ถ้า redeploy เป็นลิงก์ใหม่) ====== */
 var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
 
-/* ====== เครื่องคิดเลขลงเวลา (กฎ 480 นาที + พักล็อก 1 ชม.) ====== */
-function minutesBetween(a, b) {
-  if (!a || !b) return 0;
-  var ap = a.split(':'), bp = b.split(':');
-  var diff = (parseInt(bp[0], 10) * 60 + parseInt(bp[1], 10)) - (parseInt(ap[0], 10) * 60 + parseInt(ap[1], 10));
-  if (diff < 0) diff += 1440; /* ข้ามเที่ยงคืน */
-  return diff;
-}
+var TILES_ADMIN = [
+  { href: 'attendance.html', b: 'b1', icon: '⏱️', t: 'ลงเวลาทำงาน', d: 'บันทึกเข้า–ออก คำนวณสาย/ชดเชย/ค่าปรับ' },
+  { href: 'employees.html', b: 'b2', icon: '👥', t: 'ทะเบียนพนักงาน', d: 'ข้อมูลพนักงาน เงินเดือน ยอดสะสมยกมา' },
+  { href: 'requests.html', b: 'b3', icon: '📅', t: 'ใบลา / WFH', d: 'อนุมัติ/ปฏิเสธ และนับโควต้า' },
+  { href: 'payroll.html', b: 'b4', icon: '🧧', t: 'เงินเดือน + โบนัสตรุษจีน', d: 'คิดเงินเดือนสุทธิ ออกสลิป' },
+  { href: 'users.html', b: 'b3', icon: '🔐', t: 'จัดการผู้ใช้', d: 'เพิ่ม/ลบ/รีเซ็ตรหัส บัญชีเข้าระบบ' }
+];
+var TILES_EMP = [
+  { href: 'attendance.html', b: 'b1', icon: '⏱️', t: 'ลงเวลาของฉัน', d: 'บันทึกเวลาเข้า–ออกงาน' },
+  { href: 'requests.html', b: 'b3', icon: '📅', t: 'ยื่นใบลา / WFH', d: 'ส่งคำร้องขอลาหรือทำงานที่บ้าน' }
+];
 
-function calcAttendance(checkIn, checkOut, breakStart, breakEnd, rate) {
-  if (!checkIn || !checkOut) {
-    return { total: 0, lateMinutes: 0, penaltyFee: 0, status: 'Absent' };
+/* ===== แสดงหน้าตามสถานะล็อกอิน ===== */
+function getUser() { try { return JSON.parse(localStorage.getItem('hr_user') || 'null'); } catch (e) { return null; } }
+
+function showHub(user) {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('hubView').style.display = 'block';
+  var isAdmin = (user.role === 'admin');
+  document.getElementById('whoName').textContent = user.name || (isAdmin ? 'ผู้ดูแลระบบ' : 'พนักงาน');
+  var roleEl = document.getElementById('whoRole');
+  roleEl.textContent = isAdmin ? 'ผู้ดูแลระบบ (Admin)' : 'พนักงาน (Employee)';
+  roleEl.className = 'role ' + (isAdmin ? 'admin' : 'employee');
+  document.getElementById('ava').textContent = isAdmin ? '🛠️' : '👤';
+  var tiles = isAdmin ? TILES_ADMIN : TILES_EMP, html = '';
+  for (var i = 0; i < tiles.length; i++) {
+    var x = tiles[i];
+    html += '<a class="tile" href="' + x.href + '"><div class="badge ' + x.b + '">' + x.icon + '</div>' +
+      '<div><h2>' + x.t + '</h2><p>' + x.d + '</p></div><span class="arrow">\u203a</span></a>';
   }
-  var total = minutesBetween(checkIn, checkOut);
-  var brk = 60;
-  if (breakStart && breakEnd) brk = minutesBetween(breakStart, breakEnd);
-  total = total - brk;
-  if (total < 0) total = 0;
-
-  var standard = 480;
-  if (total >= standard) {
-    return { total: total, lateMinutes: 0, penaltyFee: 0, status: 'Compensated' };
-  }
-  var lateMinutes = standard - total;
-  return { total: total, lateMinutes: lateMinutes, penaltyFee: lateMinutes * rate, status: 'Late' };
+  document.getElementById('menu').innerHTML = html;
 }
 
-var STATUS_TH = { Present: 'มาปกติ', Compensated: 'ชดเชยครบ (ไม่ปรับ)', Late: 'สาย (โดนปรับ)', Absent: 'ขาดงาน' };
-
-function val(id) { return document.getElementById(id).value; }
-
-function updatePreview() {
-  var rate = parseFloat(val('rate')) || 0;
-  var c = calcAttendance(val('checkIn'), val('checkOut'), val('breakStart'), val('breakEnd'), rate);
-  var box = document.getElementById('preview');
-  var badge = document.getElementById('previewBadge');
-  var hh = Math.floor(c.total / 60), mm = c.total % 60;
-  document.getElementById('previewText').innerHTML =
-    '<b>ทำงานสุทธิ ' + hh + ' ชม. ' + mm + ' น.</b> (' + c.total + ' นาที) · สายขาด ' + c.lateMinutes + ' นาที · ปรับ ' + c.penaltyFee.toFixed(2) + ' ฿';
-  box.className = 'preview ' + (c.status === 'Late' ? 'late' : (c.status === 'Absent' ? 'absent' : 'ok'));
-  badge.className = 'badge ' + (c.status === 'Late' ? 'b-late' : (c.status === 'Absent' ? 'b-absent' : 'b-ok'));
-  badge.textContent = STATUS_TH[c.status];
-  return c;
+function showLogin() {
+  document.getElementById('hubView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'flex';
 }
 
-function showMsg(text, type) {
-  var m = document.getElementById('msg');
-  m.textContent = text;
-  m.className = 'msg show ' + type;
+function logout() { try { localStorage.removeItem('hr_user'); } catch (e) {} showLogin(); }
+
+/* ===== ล็อกอิน ===== */
+function showErr(t) { var el = document.getElementById('err'); el.textContent = t; el.className = 'err show'; }
+function setBusy(b) { var btn = document.getElementById('btn'); btn.disabled = b; btn.textContent = b ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'; }
+
+function doLogin() {
+  var u = document.getElementById('username').value.trim();
+  var p = document.getElementById('password').value;
+  if (!u || !p) { showErr('กรอกชื่อผู้ใช้และรหัสผ่าน'); return; }
+  document.getElementById('err').className = 'err'; setBusy(true);
+  var nonce = 'n' + Date.now() + '_' + Math.floor(Math.random() * 1e9);
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'login', username: u, password: p, nonce: nonce }) })
+    .then(function () { setTimeout(function () { checkSession(nonce, 5); }, 1500); })
+    .catch(function () { setTimeout(function () { checkSession(nonce, 5); }, 1500); });
 }
 
-/* ====== บันทึก (POST แบบ no-cors เพื่อให้เขียนผ่านชัวร์) ====== */
-function saveRecord() {
-  var userId = val('userId').trim();
-  if (!userId) { showMsg('กรุณากรอกชื่อ/รหัสพนักงานก่อน', 'error'); return; }
-  if (!val('checkIn') || !val('checkOut')) { showMsg('กรุณากรอกเวลาเข้า–ออกงาน', 'error'); return; }
-
-  var c = updatePreview();
-  var payload = {
-    date: val('date'),
-    userId: userId,
-    checkIn: val('checkIn'),
-    checkOut: val('checkOut'),
-    status: c.status,
-    penaltyFee: c.penaltyFee
-  };
-
-  var btn = document.getElementById('saveBtn');
-  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
-
-  function afterSend() {
-    btn.disabled = false; btn.textContent = 'บันทึกเข้า Google Sheet';
-    showMsg('ส่งข้อมูลแล้ว ✓ กำลังดึงตารางจากชีตมาตรวจ...', 'success');
-    setTimeout(loadData, 1500);
-  }
-
-  /* no-cors: ส่ง body ได้ปกติ Apps Script รับได้ แค่อ่าน response กลับไม่ได้ จึงรีโหลดตารางมาเช็คแทน */
-  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
-    .then(afterSend)
-    .catch(afterSend);
-}
-
-/* ====== ดึงข้อมูล (GET แบบ JSONP เพื่อเลี่ยง CORS) ====== */
-function loadData() {
-  var tbody = document.getElementById('tbody');
-  tbody.innerHTML = '<tr><td colspan="5" class="empty">กำลังโหลด...</td></tr>';
-
-  var cb = 'jsonp_' + Date.now();
+function checkSession(nonce, tries) {
+  var cb = 'sess_' + Date.now();
   var script = document.createElement('script');
-
-  window[cb] = function (rows) {
-    render(rows);
-    cleanup();
+  window[cb] = function (res) {
+    clean();
+    if (res && res.found) {
+      if (res.ok) {
+        var user = { role: res.role, name: res.name };
+        try { localStorage.setItem('hr_user', JSON.stringify(user)); } catch (e) {}
+        setBusy(false); showHub(user);
+      } else { setBusy(false); showErr('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); }
+    } else if (tries > 0) {
+      setTimeout(function () { checkSession(nonce, tries - 1); }, 1500);
+    } else { setBusy(false); showErr('หมดเวลารอ ลองใหม่อีกครั้ง'); }
   };
-  function cleanup() {
-    try { delete window[cb]; } catch (e) { window[cb] = undefined; }
-    if (script.parentNode) script.parentNode.removeChild(script);
-  }
-
-  script.onerror = function () {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">โหลดไม่ได้ — ตรวจสอบว่า Deploy ตั้งสิทธิ์เป็น "ทุกคน" และ redeploy เป็นเวอร์ชันใหม่แล้ว</td></tr>';
-    cleanup();
-  };
-
-  script.src = API_URL + '?callback=' + cb + '&t=' + Date.now();
+  function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
+  script.onerror = function () { clean(); setBusy(false); showErr('เชื่อมต่อไม่ได้ ลองใหม่'); };
+  script.src = API_URL + '?action=session&nonce=' + encodeURIComponent(nonce) + '&callback=' + cb + '&t=' + Date.now();
   document.body.appendChild(script);
 }
 
-function fmtDate(v) {
-  if (!v) return '';
-  var s = String(v);
-  if (s.length >= 10 && s.charAt(4) === '-') return s.slice(0, 10); /* ตัด ISO ให้เหลือวันที่ */
-  return s;
-}
-
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function badgeFor(status) {
-  var cls = status === 'Late' ? 'b-late' : (status === 'Absent' ? 'b-absent' : (status === 'Compensated' ? 'b-ok' : 'b-present'));
-  return '<span class="badge ' + cls + '">' + (STATUS_TH[status] || esc(status)) + '</span>';
-}
-
-function render(rows) {
-  var tbody = document.getElementById('tbody');
-  if (!rows || rows.length <= 1) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">เชื่อมต่อสำเร็จ ✓ ยังไม่มีข้อมูล ลองบันทึกรายการแรกด้านบน</td></tr>';
-    return;
-  }
-  var html = '';
-  for (var i = rows.length - 1; i >= 1; i--) {
-    var r = rows[i];
-    var date = fmtDate(r[0]);
-    var userId = esc(r[1]);
-    var ci = esc(r[2]), co = esc(r[3]);
-    var status = r[4];
-    var fee = parseFloat(r[5]) || 0;
-    html += '<tr>' +
-      '<td class="muted">' + date + '</td>' +
-      '<td>' + userId + '</td>' +
-      '<td class="mono">' + ci + '–' + co + '</td>' +
-      '<td>' + badgeFor(status) + '</td>' +
-      '<td class="' + (fee > 0 ? 'red' : 'muted') + '">' + (fee > 0 ? '-' + fee.toFixed(2) + ' ฿' : '—') + '</td>' +
-      '</tr>';
-  }
-  tbody.innerHTML = html;
-}
-
-/* ====== เริ่มต้น ====== */
+/* ===== เริ่มต้น ===== */
 (function init() {
-  var d = new Date();
-  var iso = d.getFullYear() + '-' +
-    ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
-    ('0' + d.getDate()).slice(-2);
-  document.getElementById('date').value = iso;
-
-  var ids = ['checkIn', 'checkOut', 'breakStart', 'breakEnd', 'rate'];
-  for (var i = 0; i < ids.length; i++) {
-    document.getElementById(ids[i]).addEventListener('input', updatePreview);
-  }
-  updatePreview();
-  loadData();
+  var pw = document.getElementById('password');
+  if (pw) pw.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  var u = getUser();
+  if (u && u.role) showHub(u); else showLogin();
 })();
 </script>
 </body>

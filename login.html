@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เข้าสู่ระบบ · Smart HR</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1d4ed8, #312e81); padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Helvetica Neue", Arial, sans-serif; }
+  .box { background: #fff; width: 100%; max-width: 380px; border-radius: 22px; padding: 30px 26px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.28); }
+  .logo { text-align: center; font-size: 40px; margin-bottom: 6px; }
+  h1 { text-align: center; font-size: 20px; margin: 0 0 2px; color: #0f172a; }
+  .sub { text-align: center; font-size: 12px; color: #64748b; margin: 0 0 22px; }
+  label { display: block; font-size: 12px; color: #475569; font-weight: 600; margin: 12px 0 5px; }
+  input { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 15px;
+    color: #1e293b; font-family: inherit; }
+  input:focus { outline: none; border-color: #2563eb; }
+  button { width: 100%; margin-top: 20px; background: #2563eb; color: #fff; border: 0; padding: 13px;
+    border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  button:active { background: #1d4ed8; }
+  button:disabled { background: #93c5fd; }
+  .err { display: none; margin-top: 14px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+    padding: 10px 12px; border-radius: 10px; font-size: 13px; text-align: center; }
+  .err.show { display: block; }
+  .hint { margin-top: 18px; font-size: 11px; color: #94a3b8; text-align: center; line-height: 1.6; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">🛡️</div>
+    <h1>Smart HR &amp; Payroll</h1>
+    <p class="sub">เข้าสู่ระบบเพื่อใช้งาน</p>
+
+    <label>ชื่อผู้ใช้ (username)</label>
+    <input type="text" id="username" autocomplete="username" placeholder="เช่น admin">
+
+    <label>รหัสผ่าน</label>
+    <input type="password" id="password" autocomplete="current-password" placeholder="รหัสผ่าน">
+
+    <button id="btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div id="err" class="err"></div>
+
+    <div class="hint">ครั้งแรกให้สร้างแท็บ Users ในชีต แล้วเพิ่มผู้ใช้ admin/employee ก่อน</div>
+  </div>
+
+<script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
+
+function showErr(t) { var el = document.getElementById('err'); el.textContent = t; el.className = 'err show'; }
+function hideErr() { document.getElementById('err').className = 'err'; }
+function setBusy(b) {
+  var btn = document.getElementById('btn');
+  btn.disabled = b; btn.textContent = b ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ';
+}
+
+function doLogin() {
+  var u = document.getElementById('username').value.trim();
+  var p = document.getElementById('password').value;
+  if (!u || !p) { showErr('กรอกชื่อผู้ใช้และรหัสผ่าน'); return; }
+  hideErr(); setBusy(true);
+
+  var nonce = 'n' + Date.now() + '_' + Math.floor(Math.random() * 1e9);
+
+  /* ส่งรหัสผ่านทาง body (ไม่ผ่าน URL) แบบ no-cors แล้วค่อยอ่านผลด้วย nonce */
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'login', username: u, password: p, nonce: nonce }) })
+    .then(function () { setTimeout(function () { checkSession(nonce, 5); }, 1500); })
+    .catch(function () { setTimeout(function () { checkSession(nonce, 5); }, 1500); });
+}
+
+function checkSession(nonce, tries) {
+  var cb = 'sess_' + Date.now();
+  var script = document.createElement('script');
+  window[cb] = function (res) {
+    clean();
+    if (res && res.found) {
+      if (res.ok) {
+        try {
+          localStorage.setItem('hr_user', JSON.stringify({ role: res.role, name: res.name }));
+        } catch (e) {}
+        window.location.href = 'index.html';
+      } else {
+        setBusy(false); showErr('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+      }
+    } else if (tries > 0) {
+      setTimeout(function () { checkSession(nonce, tries - 1); }, 1500);
+    } else {
+      setBusy(false); showErr('หมดเวลารอ ลองใหม่อีกครั้ง');
+    }
+  };
+  function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
+  script.onerror = function () { clean(); setBusy(false); showErr('เชื่อมต่อไม่ได้ ลองใหม่'); };
+  script.src = API_URL + '?action=session&nonce=' + encodeURIComponent(nonce) + '&callback=' + cb + '&t=' + Date.now();
+  document.body.appendChild(script);
+}
+
+document.getElementById('password').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
