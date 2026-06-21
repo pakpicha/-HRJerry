@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คิดเงินเดือน + โบนัสตรุษจีน · Smart HR</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: #f1f5f9; color: #1e293b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Helvetica Neue", Arial, sans-serif; }
+  .wrap { max-width: 1050px; margin: 0 auto; padding: 0 14px 60px; }
+  header { background: linear-gradient(90deg, #1d4ed8, #312e81); color: #fff; padding: 16px;
+    position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+  .hd { max-width: 1050px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .hd .ico { font-size: 26px; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 700; }
+  header p { font-size: 12px; margin: 2px 0 0; color: #c7d2fe; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-top: 16px; }
+  .card.cfg { background: #fff7ed; border-color: #fed7aa; }
+  .card h2 { font-size: 16px; margin: 0 0 4px; color: #0f172a; }
+  .card .sub { font-size: 12px; color: #64748b; margin: 0 0 14px; }
+  .cfgttl { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #9a3412; margin-bottom: 12px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (min-width: 680px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
+  label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #64748b; }
+  input, select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 10px;
+    font-size: 14px; background: #fff; color: #1e293b; font-family: inherit; }
+  input:focus, select:focus { outline: none; border-color: #2563eb; }
+  .toggles { display: flex; gap: 16px; align-items: center; margin-top: 8px; }
+  .toggles label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #334155; }
+  .toggles input { width: auto; }
+  .note { font-size: 11px; color: #9a3412; margin-top: 8px; }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+  th { text-align: left; padding: 9px 8px; background: #f8fafc; color: #475569; border-bottom: 1px solid #e2e8f0; white-space: nowrap; font-size: 12px; }
+  td { padding: 9px 8px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+  td.name { font-weight: 700; color: #0f172a; }
+  td input { width: 90px; padding: 6px 8px; text-align: right; }
+  .green { color: #059669; font-weight: 600; }
+  .red { color: #dc2626; font-weight: 600; }
+  .net { color: #1d4ed8; font-weight: 800; font-size: 15px; }
+  .lock { color: #dc2626; font-size: 11px; font-weight: 700; }
+  .ok2 { color: #059669; font-size: 11px; }
+  .meta { font-size: 11px; color: #94a3b8; display: block; }
+  .empty { text-align: center; color: #94a3b8; padding: 24px; font-size: 13px; }
+  .saveall { margin-top: 16px; background: #059669; color: #fff; border: 0; padding: 12px 24px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .saveall:disabled { background: #cbd5e1; }
+  .msg { margin-top: 10px; font-size: 13px; padding: 10px 12px; border-radius: 10px; display: none; }
+  .msg.show { display: block; }
+  .msg.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .refresh { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: #475569; font-family: inherit; }
+  footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 22px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd">
+    <span class="ico">🧧</span>
+    <div>
+      <h1>คิดเงินเดือน + โบนัสตรุษจีน</h1>
+      <p>ดึงเงินเดือนฐาน + หักสายจริง + ล็อกอายุงาน 1 ปี · บันทึกลงแท็บ Payroll</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card cfg">
+    <div class="cfgttl">⚙️ ตั้งค่าการคำนวณ</div>
+    <div class="grid">
+      <label class="f">งวดเงินเดือน
+        <input type="month" id="month" onchange="loadAll()">
+      </label>
+      <label class="f">วันตรุษจีนเป้าหมาย
+        <input type="date" id="cnyDate" value="2027-02-06" onchange="recalc()">
+      </label>
+      <label class="f">รูปแบบโบนัส
+        <select id="bonusType" onchange="recalc()">
+          <option value="multiplier">คูณเท่าของเงินเดือน</option>
+          <option value="fix">จำนวนคงที่ (บาท)</option>
+        </select>
+      </label>
+      <label class="f">ตัวคูณ (เท่า)
+        <input type="number" id="multiplier" step="0.1" value="1.5" onchange="recalc()" oninput="recalc()">
+      </label>
+      <label class="f">โบนัสคงที่ (฿)
+        <input type="number" id="fix" value="10000" onchange="recalc()" oninput="recalc()">
+      </label>
+    </div>
+    <div class="toggles">
+      <label><input type="checkbox" id="incCny" checked onchange="recalc()"> จ่ายโบนัสตรุษจีน</label>
+      <label><input type="checkbox" id="incSso" checked onchange="recalc()"> หักประกันสังคม 5% (เพดาน 750)</label>
+    </div>
+    <div class="note">* อายุงานต่ำกว่า 1 ปี (365 วัน) นับถึงวันตรุษจีน ระบบล็อกตัดสิทธิ์โบนัสอัตโนมัติ · หักสายดึงจากการลงเวลาจริงในงวดนั้น</div>
+  </div>
+
+  <div class="card">
+    <div class="row-top">
+      <div>
+        <h2 id="tblTitle">สรุปเงินเดือน</h2>
+        <p class="sub" style="margin:0">ช่อง OT / คอมมิชชัน / พิเศษ พิมพ์เติมเองได้ ระบบคำนวณสุทธิให้ทันที</p>
+      </div>
+      <button class="refresh" onclick="loadAll()">↻ รีเฟรช</button>
+    </div>
+    <div class="tablewrap" style="margin-top:12px">
+      <table>
+        <thead>
+          <tr>
+            <th>พนักงาน</th>
+            <th>ฐาน</th>
+            <th>OT</th>
+            <th>คอมมิชชัน</th>
+            <th>พิเศษ/เบี้ยขยัน</th>
+            <th>โบนัสตรุษจีน</th>
+            <th>หักสาย</th>
+            <th>ปกส.</th>
+            <th>สุทธิ</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="9" class="empty">กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <button class="saveall" id="saveBtn" onclick="saveAll()">💾 บันทึกสลิปทั้งหมดลงชีต Payroll</button>
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <footer>ข้อมูลจัดเก็บใน Google Sheet ของคุณ · โมดูลเงินเดือน</footer>
+</div>
+
+<script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
+
+var EMPLOYEES = [];
+var ATTENDANCE = [];
+var PAYROLL = [];      /* แถวสลิปที่เคยบันทึกของงวดนี้ (ไว้ prefill OT/คอม/พิเศษ) */
+var COMPUTED = [];     /* ผลคำนวณล่าสุดของแต่ละคน ไว้กดบันทึก */
+
+function val(id) { return document.getElementById(id).value; }
+function money(n) { return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;'); }
+function fmtDate(v) { if (!v) return ''; var s = String(v); return (s.length >= 10 && s.charAt(4) === '-') ? s.slice(0, 10) : s; }
+function showMsg(t) { var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg show success'; }
+
+function jsonp(sheet, done) {
+  var cb = 'jsonp_' + sheet + '_' + Date.now();
+  var script = document.createElement('script');
+  window[cb] = function (rows) { done(rows || []); clean(); };
+  function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
+  script.onerror = function () { done(null); clean(); };
+  script.src = API_URL + '?sheet=' + sheet + '&callback=' + cb + '&t=' + Date.now();
+  document.body.appendChild(script);
+}
+
+function loadAll() {
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="empty">กำลังโหลด...</td></tr>';
+  jsonp('Employees', function (emp) {
+    if (emp === null) { document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="empty">โหลดไม่ได้ — ตรวจ redeploy เวอร์ชันใหม่</td></tr>'; return; }
+    EMPLOYEES = (emp && emp.length > 1) ? emp.slice(1) : [];
+    jsonp('Attendance', function (att) {
+      ATTENDANCE = (att && att.length > 1) ? att.slice(1) : [];
+      jsonp('Payroll', function (pay) {
+        PAYROLL = (pay && pay.length > 1) ? pay.slice(1) : [];
+        renderTable();
+        recalc();
+      });
+    });
+  });
+}
+
+function savedFor(name) {
+  var m = val('month');
+  for (var i = 0; i < PAYROLL.length; i++) {
+    if (String(PAYROLL[i][0]) === m && String(PAYROLL[i][1]) === String(name)) return PAYROLL[i];
+  }
+  return null;
+}
+
+function renderTable() {
+  var tbody = document.getElementById('tbody');
+  if (!EMPLOYEES.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">ยังไม่มีพนักงานในทะเบียน</td></tr>'; return; }
+  var html = '';
+  for (var i = 0; i < EMPLOYEES.length; i++) {
+    var e = EMPLOYEES[i];
+    var id = e[0], name = e[1], base = Number(e[2]) || 0, hiring = fmtDate(e[3]);
+    var hasOt = (e[4] === true || String(e[4]).toLowerCase() === 'true');
+    var saved = savedFor(name);
+    var ot = saved ? Number(saved[3]) || 0 : 0;
+    var com = saved ? Number(saved[4]) || 0 : 0;
+    var bon = saved ? Number(saved[5]) || 0 : 0;
+    var key = esc(String(id));
+
+    html += '<tr data-i="' + i + '">' +
+      '<td class="name">' + esc(name) + '<span class="meta">เริ่มงาน ' + hiring + '</span></td>' +
+      '<td>' + money(base) + '</td>' +
+      '<td>' + (hasOt
+          ? '<input type="number" id="ot_' + key + '" value="' + ot + '" oninput="recalc()">'
+          : '<span class="meta">ไม่มีสิทธิ์</span>') + '</td>' +
+      '<td><input type="number" id="com_' + key + '" value="' + com + '" oninput="recalc()"></td>' +
+      '<td><input type="number" id="bon_' + key + '" value="' + bon + '" oninput="recalc()"></td>' +
+      '<td id="cny_' + key + '">—</td>' +
+      '<td id="pen_' + key + '" class="red">—</td>' +
+      '<td id="sso_' + key + '" class="red">—</td>' +
+      '<td id="net_' + key + '" class="net">—</td>' +
+      '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function latePenaltyFor(name, month) {
+  var sum = 0;
+  for (var i = 0; i < ATTENDANCE.length; i++) {
+    var r = ATTENDANCE[i];
+    if (String(r[1]) !== String(name)) continue;
+    if (fmtDate(r[0]).slice(0, 7) !== month) continue;
+    sum += Number(r[5]) || 0;
+  }
+  return sum;
+}
+
+function tenureEligible(hiring, cny) {
+  if (!hiring || !cny) return false;
+  var days = Math.ceil(Math.abs(new Date(cny) - new Date(hiring)) / 86400000);
+  return days >= 365;
+}
+
+function recalc() {
+  var month = val('month');
+  var cnyDate = val('cnyDate');
+  var bonusType = val('bonusType');
+  var multiplier = parseFloat(val('multiplier')) || 0;
+  var fix = parseFloat(val('fix')) || 0;
+  var incCny = document.getElementById('incCny').checked;
+  var incSso = document.getElementById('incSso').checked;
+
+  COMPUTED = [];
+  for (var i = 0; i < EMPLOYEES.length; i++) {
+    var e = EMPLOYEES[i];
+    var id = e[0], name = e[1], base = Number(e[2]) || 0, hiring = fmtDate(e[3]);
+    var hasOt = (e[4] === true || String(e[4]).toLowerCase() === 'true');
+    var key = id;
+
+    var otEl = document.getElementById('ot_' + key);
+    var ot = (hasOt && otEl) ? (parseFloat(otEl.value) || 0) : 0;
+    var com = parseFloat((document.getElementById('com_' + key) || {}).value) || 0;
+    var bon = parseFloat((document.getElementById('bon_' + key) || {}).value) || 0;
+
+    var eligible = tenureEligible(hiring, cnyDate);
+    var cny = 0;
+    if (incCny && eligible) cny = (bonusType === 'fix') ? fix : base * multiplier;
+
+    var pen = latePenaltyFor(name, month);
+    var sso = incSso ? Math.min(base * 0.05, 750) : 0;
+    var net = base + ot + com + bon + cny - pen - sso;
+
+    var cnyCell = document.getElementById('cny_' + key);
+    if (cnyCell) cnyCell.innerHTML = cny > 0
+      ? '<span class="green">+' + money(cny) + '</span>'
+      : (eligible ? '<span class="meta">ปิดจ่าย</span>' : '<span class="lock">ไม่ถึง 1 ปี</span>');
+    var penCell = document.getElementById('pen_' + key); if (penCell) penCell.textContent = pen > 0 ? '-' + money(pen) : '—';
+    var ssoCell = document.getElementById('sso_' + key); if (ssoCell) ssoCell.textContent = sso > 0 ? '-' + money(sso) : '—';
+    var netCell = document.getElementById('net_' + key); if (netCell) netCell.textContent = money(net) + ' ฿';
+
+    COMPUTED.push({ monthYear: month, userId: name, baseSalary: base, otPay: ot, commission: com, bonus: bon, cnyBonus: cny, latePenalty: pen, socialSecurity: sso, netSalary: net });
+  }
+}
+
+/* ====== บันทึกสลิปทุกคนลงแท็บ Payroll (ทีละคน หน่วงเล็กน้อยกันชนกัน) ====== */
+function saveAll() {
+  if (!COMPUTED.length) { showMsg('ยังไม่มีข้อมูลให้บันทึก'); return; }
+  var btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+  var idx = 0;
+  function next() {
+    if (idx >= COMPUTED.length) {
+      btn.disabled = false; btn.textContent = '💾 บันทึกสลิปทั้งหมดลงชีต Payroll';
+      showMsg('บันทึกสลิป ' + COMPUTED.length + ' รายการลงชีตแล้ว ✓');
+      setTimeout(loadAll, 1500);
+      return;
+    }
+    var payload = COMPUTED[idx]; payload.sheet = 'Payroll';
+    fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+      .then(step).catch(step);
+    function step() { idx++; setTimeout(next, 450); }
+  }
+  next();
+}
+
+(function init() {
+  var d = new Date();
+  document.getElementById('month').value = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+  loadAll();
+})();
+</script>
+</body>
+</html>
