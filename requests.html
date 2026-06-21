@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ใบลา / WFH · Smart HR</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: #f1f5f9; color: #1e293b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Helvetica Neue", Arial, sans-serif; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 14px 60px; }
+  header { background: linear-gradient(90deg, #1d4ed8, #312e81); color: #fff; padding: 16px;
+    position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+  .hd { max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .hd .ico { font-size: 26px; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 700; }
+  header p { font-size: 12px; margin: 2px 0 0; color: #c7d2fe; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-top: 16px; }
+  .card h2 { font-size: 16px; margin: 0 0 4px; color: #0f172a; }
+  .card .sub { font-size: 12px; color: #64748b; margin: 0 0 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (min-width: 620px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
+  label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #64748b; }
+  label.f.full { grid-column: 1 / -1; }
+  input, select { width: 100%; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 10px;
+    font-size: 14px; background: #fff; color: #1e293b; font-family: inherit; }
+  input:focus, select:focus { outline: none; border-color: #2563eb; }
+  .days { font-size: 12px; color: #64748b; margin-top: 8px; }
+  button.primary { margin-top: 12px; background: #2563eb; color: #fff; border: 0; padding: 11px 20px;
+    border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  button.primary:active { background: #1d4ed8; }
+  .msg { margin-top: 10px; font-size: 13px; padding: 10px 12px; border-radius: 10px; display: none; }
+  .msg.show { display: block; }
+  .msg.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .msg.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .req { border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .req .line1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .req .nm { font-weight: 700; color: #0f172a; }
+  .tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #4338ca; }
+  .tag.wfh { background: #e0e7ff; color: #3730a3; }
+  .req .det { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-y { background: #059669; color: #fff; border: 0; padding: 7px 14px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-n { background: #fef2f2; color: #dc2626; border: 0; padding: 7px 14px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .b-app { background: #d1fae5; color: #065f46; }
+  .b-rej { background: #fee2e2; color: #b91c1c; }
+  .b-pen { background: #fef3c7; color: #92400e; }
+  .rejbox { display: flex; gap: 8px; margin-top: 8px; }
+  .rejbox input { flex: 1; }
+  .rejbox button { background: #dc2626; color: #fff; border: 0; padding: 8px 14px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .secttl { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; margin: 6px 0 8px; }
+  .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 13px; }
+  .qrow { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+  .qrow:last-child { border-bottom: 0; }
+  .qchips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 11px; padding: 3px 8px; border-radius: 8px; background: #f1f5f9; color: #475569; font-weight: 600; }
+  .chip.warn { background: #fef2f2; color: #b91c1c; }
+  .row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .refresh { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: #475569; font-family: inherit; }
+  footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 22px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd">
+    <span class="ico">📅</span>
+    <div>
+      <h1>ใบลา / ขอ WFH</h1>
+      <p>ยื่นคำร้อง → อนุมัติ/ปฏิเสธ → นับโควต้าอัตโนมัติ · แท็บ Requests</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>ยื่นคำร้อง (ลา / WFH)</h2>
+    <p class="sub">เลือกพนักงานจากทะเบียน ระบุประเภทและช่วงวัน</p>
+    <div class="grid">
+      <label class="f full">พนักงาน
+        <select id="userId"><option value="">— เลือกพนักงาน —</option></select>
+      </label>
+      <label class="f">ประเภท
+        <select id="type">
+          <option value="personal">ลากิจ</option>
+          <option value="sick">ลาป่วย</option>
+          <option value="vacation">ลาพักร้อน</option>
+          <option value="wfh">ขอ WFH</option>
+        </select>
+      </label>
+      <label class="f">ตั้งแต่
+        <input type="date" id="startDate">
+      </label>
+      <label class="f">ถึง
+        <input type="date" id="endDate">
+      </label>
+      <label class="f full">เหตุผล
+        <input type="text" id="reason" placeholder="เหตุผลความจำเป็น">
+      </label>
+    </div>
+    <div class="days" id="days">รวม 1 วัน</div>
+    <button class="primary" onclick="submitRequest()">ส่งคำร้อง</button>
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <div class="row-top">
+      <h2>คำร้องทั้งหมด</h2>
+      <button class="refresh" onclick="loadAll()">↻ รีเฟรช</button>
+    </div>
+    <div id="pendingWrap" style="margin-top:12px"></div>
+    <div id="decidedWrap"></div>
+  </div>
+
+  <div class="card">
+    <h2>สรุปโควต้าที่ใช้ไป (เฉพาะที่อนุมัติแล้ว)</h2>
+    <p class="sub" style="margin-bottom:10px">ป่วย 30 · กิจ 7 · พักร้อน 6 วัน/ปี · WFH ตามที่ตั้งในทะเบียน</p>
+    <div id="quotaWrap"></div>
+  </div>
+
+  <footer>ข้อมูลจัดเก็บใน Google Sheet ของคุณ · โมดูลใบลา/WFH</footer>
+</div>
+
+<script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
+
+var EMPLOYEES = [];
+var REQUESTS = [];
+var rejectingId = null;
+
+var SICK_Q = 30, PERSONAL_Q = 7, VAC_Q = 6;
+var TYPE_TH = { sick: 'ลาป่วย', personal: 'ลากิจ', vacation: 'ลาพักร้อน', wfh: 'ขอ WFH' };
+
+function val(id) { return document.getElementById(id).value; }
+function showMsg(t, type) { var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg show ' + type; }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;'); }
+function fmtDate(v) { if (!v) return ''; var s = String(v); return (s.length >= 10 && s.charAt(4) === '-') ? s.slice(0, 10) : s; }
+
+function jsonp(sheet, done) {
+  var cb = 'jsonp_' + sheet + '_' + Date.now();
+  var script = document.createElement('script');
+  window[cb] = function (rows) { done(rows || []); clean(); };
+  function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
+  script.onerror = function () { done(null); clean(); };
+  script.src = API_URL + '?sheet=' + sheet + '&callback=' + cb + '&t=' + Date.now();
+  document.body.appendChild(script);
+}
+
+function loadAll() {
+  document.getElementById('pendingWrap').innerHTML = '<div class="empty">กำลังโหลด...</div>';
+  document.getElementById('decidedWrap').innerHTML = '';
+  jsonp('Employees', function (emp) {
+    EMPLOYEES = (emp && emp.length > 1) ? emp.slice(1) : [];
+    fillEmployeeSelect();
+    jsonp('Requests', function (req) {
+      if (req === null) {
+        document.getElementById('pendingWrap').innerHTML = '<div class="empty">โหลดไม่ได้ — ตรวจว่ามีแท็บ Requests และ redeploy แล้ว</div>';
+        return;
+      }
+      REQUESTS = req.length > 1 ? req.slice(1) : [];
+      renderRequests();
+      renderQuota();
+    });
+  });
+}
+
+function fillEmployeeSelect() {
+  var sel = document.getElementById('userId');
+  var html = '<option value="">— เลือกพนักงาน —</option>';
+  for (var i = 0; i < EMPLOYEES.length; i++) {
+    var name = EMPLOYEES[i][1];
+    html += '<option value="' + esc(name) + '">' + esc(name) + '</option>';
+  }
+  sel.innerHTML = html;
+}
+
+function calcDays() {
+  var s = val('startDate'), e = val('endDate');
+  if (!s || !e) return 1;
+  var d = Math.floor((new Date(e) - new Date(s)) / 86400000) + 1;
+  return d > 0 ? d : 1;
+}
+
+function renderRequests() {
+  var pend = [], dec = [];
+  for (var i = 0; i < REQUESTS.length; i++) {
+    if (String(REQUESTS[i][7]) === 'pending') pend.push(REQUESTS[i]); else dec.push(REQUESTS[i]);
+  }
+  var pw = document.getElementById('pendingWrap');
+  var html = '<div class="secttl">รออนุมัติ (' + pend.length + ')</div>';
+  if (!pend.length) html += '<div class="empty">ไม่มีคำร้องค้างอยู่</div>';
+  for (var p = pend.length - 1; p >= 0; p--) html += reqCard(pend[p], true);
+  pw.innerHTML = html;
+
+  var dw = document.getElementById('decidedWrap');
+  var h2 = '';
+  if (dec.length) {
+    h2 += '<div class="secttl" style="margin-top:14px">พิจารณาแล้ว</div>';
+    for (var q = dec.length - 1; q >= 0; q--) h2 += reqCard(dec[q], false);
+  }
+  dw.innerHTML = h2;
+}
+
+function reqCard(r, isPending) {
+  var id = r[0], who = r[1], type = r[2];
+  var sd = fmtDate(r[3]), ed = fmtDate(r[4]), days = r[5], reason = r[6], status = r[7], decReason = r[9];
+  var tagCls = (type === 'wfh') ? 'tag wfh' : 'tag';
+  var h = '<div class="req"><div class="line1">' +
+    '<span class="nm">' + esc(who) + '</span>' +
+    '<span class="' + tagCls + '">' + (TYPE_TH[type] || esc(type)) + '</span>' +
+    (!isPending ? '<span class="badge ' + (status === 'approved' ? 'b-app' : 'b-rej') + '">' + (status === 'approved' ? 'อนุมัติแล้ว' : 'ปฏิเสธ') + '</span>' : '') +
+    '</div>' +
+    '<div class="det">' + sd + ' → ' + ed + ' (' + days + ' วัน) · เหตุผล: ' + esc(reason) +
+    (decReason ? ' · <span style="color:#dc2626">' + esc(decReason) + '</span>' : '') + '</div>';
+
+  if (isPending) {
+    if (String(rejectingId) === String(id)) {
+      h += '<div class="rejbox"><input type="text" id="rej_' + esc(String(id)) + '" placeholder="ระบุเหตุผลที่ปฏิเสธ">' +
+           '<button onclick="confirmReject(\'' + esc(String(id)) + '\')">ยืนยันปฏิเสธ</button></div>';
+    } else {
+      h += '<div class="actions">' +
+        '<button class="btn-y" onclick="decide(\'' + esc(String(id)) + '\',\'approved\',\'\')">✓ อนุมัติ</button>' +
+        '<button class="btn-n" onclick="startReject(\'' + esc(String(id)) + '\')">✕ ปฏิเสธ</button></div>';
+    }
+  }
+  h += '</div>';
+  return h;
+}
+
+function startReject(id) { rejectingId = id; renderRequests(); }
+function confirmReject(id) {
+  var el = document.getElementById('rej_' + id);
+  var reason = el ? el.value : '';
+  rejectingId = null;
+  decide(id, 'rejected', reason);
+}
+
+function decide(id, status, reason) {
+  var payload = { sheet: 'Requests', action: 'decide', id: id, status: status, decidedReason: reason || '' };
+  document.getElementById('pendingWrap').innerHTML = '<div class="empty">กำลังบันทึก...</div>';
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+    .then(done).catch(done);
+  function done() { setTimeout(loadAll, 1500); }
+}
+
+function submitRequest() {
+  var who = val('userId');
+  if (!who) { showMsg('กรุณาเลือกพนักงาน', 'error'); return; }
+  if (!val('reason').trim()) { showMsg('กรุณากรอกเหตุผล', 'error'); return; }
+  var payload = {
+    sheet: 'Requests',
+    id: Date.now(),
+    userId: who,
+    type: val('type'),
+    startDate: val('startDate'),
+    endDate: val('endDate'),
+    totalDays: calcDays(),
+    reason: val('reason').trim()
+  };
+  showMsg('กำลังส่ง...', 'success');
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+    .then(done).catch(done);
+  function done() {
+    showMsg('ส่งคำร้องแล้ว ✓', 'success');
+    document.getElementById('reason').value = '';
+    setTimeout(loadAll, 1500);
+  }
+}
+
+function renderQuota() {
+  var wrap = document.getElementById('quotaWrap');
+  if (!EMPLOYEES.length) { wrap.innerHTML = '<div class="empty">ยังไม่มีพนักงานในทะเบียน</div>'; return; }
+  var html = '';
+  for (var i = 0; i < EMPLOYEES.length; i++) {
+    var name = EMPLOYEES[i][1];
+    var wfhQ = parseInt(EMPLOYEES[i][5], 10) || 0;
+    var s = 0, p = 0, v = 0, w = 0;
+    for (var j = 0; j < REQUESTS.length; j++) {
+      var r = REQUESTS[j];
+      if (String(r[1]) !== String(name)) continue;
+      if (String(r[7]) !== 'approved') continue;
+      var d = parseInt(r[5], 10) || 0;
+      if (r[2] === 'sick') s += d; else if (r[2] === 'personal') p += d;
+      else if (r[2] === 'vacation') v += d; else if (r[2] === 'wfh') w += d;
+    }
+    html += '<div class="qrow"><span style="font-weight:600">' + esc(name) + '</span><span class="qchips">' +
+      chip('ป่วย', s, SICK_Q) + chip('กิจ', p, PERSONAL_Q) + chip('พักร้อน', v, VAC_Q) + chip('WFH', w, wfhQ) +
+      '</span></div>';
+  }
+  wrap.innerHTML = html;
+}
+function chip(label, used, total) {
+  var cls = (total > 0 && used >= total) ? 'chip warn' : 'chip';
+  return '<span class="' + cls + '">' + label + ' ' + used + '/' + total + '</span>';
+}
+
+(function init() {
+  var d = new Date();
+  var iso = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  document.getElementById('startDate').value = iso;
+  document.getElementById('endDate').value = iso;
+  document.getElementById('startDate').addEventListener('input', function () { document.getElementById('days').textContent = 'รวม ' + calcDays() + ' วัน'; });
+  document.getElementById('endDate').addEventListener('input', function () { document.getElementById('days').textContent = 'รวม ' + calcDays() + ' วัน'; });
+  loadAll();
+})();
+</script>
+</body>
+</html>
