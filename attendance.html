@@ -157,6 +157,14 @@
 /* ====== ตั้งค่า: ลิงก์ Apps Script (เปลี่ยนตรงนี้ถ้า redeploy เป็นลิงก์ใหม่) ====== */
 var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
 
+/* ====== ยามเฝ้าประตู + ระบุตัวตน ====== */
+var ME = null;
+try { ME = JSON.parse(localStorage.getItem('hr_user') || 'null'); } catch (e) { ME = null; }
+if (!ME || !ME.role) { window.location.href = 'index.html'; }
+var IS_ADMIN = ME && String(ME.role).trim().toLowerCase() === 'admin';
+var TOKEN = ME ? (ME.token || '') : '';
+function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e) {} window.location.href = 'index.html'; }
+
 /* ====== เครื่องคิดเลขลงเวลา (กฎ 480 นาที + พักล็อก 1 ชม.) ====== */
 function minutesBetween(a, b) {
   if (!a || !b) return 0;
@@ -221,7 +229,8 @@ function saveRecord() {
     checkIn: val('checkIn'),
     checkOut: val('checkOut'),
     status: c.status,
-    penaltyFee: c.penaltyFee
+    penaltyFee: c.penaltyFee,
+    token: TOKEN
   };
 
   var btn = document.getElementById('saveBtn');
@@ -248,6 +257,7 @@ function loadData() {
   var script = document.createElement('script');
 
   window[cb] = function (rows) {
+    if (rows && rows.error) { cleanup(); sessionExpired(); return; }
     render(rows);
     cleanup();
   };
@@ -261,7 +271,7 @@ function loadData() {
     cleanup();
   };
 
-  script.src = API_URL + '?callback=' + cb + '&t=' + Date.now();
+  script.src = API_URL + '?token=' + encodeURIComponent(TOKEN) + '&callback=' + cb + '&t=' + Date.now();
   document.body.appendChild(script);
 }
 
@@ -291,6 +301,7 @@ function render(rows) {
   var html = '';
   for (var i = rows.length - 1; i >= 1; i--) {
     var r = rows[i];
+    if (!IS_ADMIN && String(r[1]) !== String(ME.name)) continue;
     var date = fmtDate(r[0]);
     var userId = esc(r[1]);
     var ci = esc(r[2]), co = esc(r[3]);
@@ -309,6 +320,10 @@ function render(rows) {
 
 /* ====== เริ่มต้น ====== */
 (function init() {
+  if (!IS_ADMIN && ME) {
+    var uel = document.getElementById('userId');
+    uel.value = ME.name; uel.readOnly = true; uel.style.background = '#f1f5f9';
+  }
   var d = new Date();
   var iso = d.getFullYear() + '-' +
     ('0' + (d.getMonth() + 1)).slice(-2) + '-' +

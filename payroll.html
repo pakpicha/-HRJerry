@@ -134,6 +134,18 @@
 <script>
 var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
 
+/* ====== ยามเฝ้าประตู: เฉพาะ admin ====== */
+(function () {
+  var me = null;
+  try { me = JSON.parse(localStorage.getItem('hr_user') || 'null'); } catch (e) { me = null; }
+  var role = (me && me.role) ? String(me.role).trim().toLowerCase() : '';
+  if (role !== 'admin') { window.location.href = 'index.html'; }
+})();
+
+var TOKEN = '';
+try { var _u = JSON.parse(localStorage.getItem('hr_user') || 'null'); TOKEN = (_u && _u.token) || ''; } catch (e) { TOKEN = ''; }
+function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e) {} window.location.href = 'index.html'; }
+
 var EMPLOYEES = [];
 var ATTENDANCE = [];
 var PAYROLL = [];      /* แถวสลิปที่เคยบันทึกของงวดนี้ (ไว้ prefill OT/คอม/พิเศษ) */
@@ -148,10 +160,10 @@ function showMsg(t) { var m = document.getElementById('msg'); m.textContent = t;
 function jsonp(sheet, done) {
   var cb = 'jsonp_' + sheet + '_' + Date.now();
   var script = document.createElement('script');
-  window[cb] = function (rows) { done(rows || []); clean(); };
+  window[cb] = function (rows) { if (rows && rows.error) { clean(); sessionExpired(); return; } done(rows || []); clean(); };
   function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
   script.onerror = function () { done(null); clean(); };
-  script.src = API_URL + '?sheet=' + sheet + '&callback=' + cb + '&t=' + Date.now();
+  script.src = API_URL + '?sheet=' + sheet + '&token=' + encodeURIComponent(TOKEN) + '&callback=' + cb + '&t=' + Date.now();
   document.body.appendChild(script);
 }
 
@@ -282,7 +294,7 @@ function saveAll() {
       setTimeout(loadAll, 1500);
       return;
     }
-    var payload = COMPUTED[idx]; payload.sheet = 'Payroll';
+    var payload = COMPUTED[idx]; payload.sheet = 'Payroll'; payload.token = TOKEN;
     fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
       .then(step).catch(step);
     function step() { idx++; setTimeout(next, 450); }

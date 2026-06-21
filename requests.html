@@ -126,6 +126,14 @@
 <script>
 var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
 
+/* ====== ยามเฝ้าประตู + ระบุตัวตน ====== */
+var ME = null;
+try { ME = JSON.parse(localStorage.getItem('hr_user') || 'null'); } catch (e) { ME = null; }
+if (!ME || !ME.role) { window.location.href = 'index.html'; }
+var IS_ADMIN = ME && String(ME.role).trim().toLowerCase() === 'admin';
+var TOKEN = ME ? (ME.token || '') : '';
+function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e) {} window.location.href = 'index.html'; }
+
 var EMPLOYEES = [];
 var REQUESTS = [];
 var rejectingId = null;
@@ -141,10 +149,10 @@ function fmtDate(v) { if (!v) return ''; var s = String(v); return (s.length >= 
 function jsonp(sheet, done) {
   var cb = 'jsonp_' + sheet + '_' + Date.now();
   var script = document.createElement('script');
-  window[cb] = function (rows) { done(rows || []); clean(); };
+  window[cb] = function (rows) { if (rows && rows.error) { clean(); sessionExpired(); return; } done(rows || []); clean(); };
   function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
   script.onerror = function () { done(null); clean(); };
-  script.src = API_URL + '?sheet=' + sheet + '&callback=' + cb + '&t=' + Date.now();
+  script.src = API_URL + '?sheet=' + sheet + '&token=' + encodeURIComponent(TOKEN) + '&callback=' + cb + '&t=' + Date.now();
   document.body.appendChild(script);
 }
 
@@ -168,6 +176,11 @@ function loadAll() {
 
 function fillEmployeeSelect() {
   var sel = document.getElementById('userId');
+  if (!IS_ADMIN && ME) {
+    sel.innerHTML = '<option value="' + esc(ME.name) + '">' + esc(ME.name) + '</option>';
+    sel.value = ME.name; sel.disabled = true; sel.style.background = '#f1f5f9';
+    return;
+  }
   var html = '<option value="">— เลือกพนักงาน —</option>';
   for (var i = 0; i < EMPLOYEES.length; i++) {
     var name = EMPLOYEES[i][1];
@@ -186,6 +199,7 @@ function calcDays() {
 function renderRequests() {
   var pend = [], dec = [];
   for (var i = 0; i < REQUESTS.length; i++) {
+    if (!IS_ADMIN && String(REQUESTS[i][1]) !== String(ME.name)) continue;
     if (String(REQUESTS[i][7]) === 'pending') pend.push(REQUESTS[i]); else dec.push(REQUESTS[i]);
   }
   var pw = document.getElementById('pendingWrap');
@@ -216,7 +230,9 @@ function reqCard(r, isPending) {
     (decReason ? ' · <span style="color:#dc2626">' + esc(decReason) + '</span>' : '') + '</div>';
 
   if (isPending) {
-    if (String(rejectingId) === String(id)) {
+    if (!IS_ADMIN) {
+      h += '<div class="actions"><span class="badge b-pen">รอพิจารณา</span></div>';
+    } else if (String(rejectingId) === String(id)) {
       h += '<div class="rejbox"><input type="text" id="rej_' + esc(String(id)) + '" placeholder="ระบุเหตุผลที่ปฏิเสธ">' +
            '<button onclick="confirmReject(\'' + esc(String(id)) + '\')">ยืนยันปฏิเสธ</button></div>';
     } else {
@@ -238,7 +254,7 @@ function confirmReject(id) {
 }
 
 function decide(id, status, reason) {
-  var payload = { sheet: 'Requests', action: 'decide', id: id, status: status, decidedReason: reason || '' };
+  var payload = { sheet: 'Requests', action: 'decide', id: id, status: status, decidedReason: reason || '', token: TOKEN };
   document.getElementById('pendingWrap').innerHTML = '<div class="empty">กำลังบันทึก...</div>';
   fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
     .then(done).catch(done);
@@ -257,7 +273,8 @@ function submitRequest() {
     startDate: val('startDate'),
     endDate: val('endDate'),
     totalDays: calcDays(),
-    reason: val('reason').trim()
+    reason: val('reason').trim(),
+    token: TOKEN
   };
   showMsg('กำลังส่ง...', 'success');
   fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
@@ -275,6 +292,7 @@ function renderQuota() {
   var html = '';
   for (var i = 0; i < EMPLOYEES.length; i++) {
     var name = EMPLOYEES[i][1];
+    if (!IS_ADMIN && String(name) !== String(ME.name)) continue;
     var wfhQ = parseInt(EMPLOYEES[i][5], 10) || 0;
     var s = 0, p = 0, v = 0, w = 0;
     for (var j = 0; j < REQUESTS.length; j++) {

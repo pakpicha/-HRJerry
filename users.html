@@ -130,6 +130,8 @@ if (!USER || USER.role !== 'admin') {
   document.getElementById('app').style.display = 'block';
 }
 
+var TOKEN = USER ? (USER.token || '') : '';
+function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e) {} window.location.href = 'index.html'; }
 var USERS = [];
 var resettingUser = null;
 
@@ -140,10 +142,10 @@ function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').repla
 function jsonp(sheet, done) {
   var cb = 'jsonp_' + Date.now();
   var script = document.createElement('script');
-  window[cb] = function (rows) { done(rows || []); clean(); };
+  window[cb] = function (rows) { if (rows && rows.error) { clean(); sessionExpired(); return; } done(rows || []); clean(); };
   function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
   script.onerror = function () { done(null); clean(); };
-  script.src = API_URL + '?sheet=' + sheet + '&callback=' + cb + '&t=' + Date.now();
+  script.src = API_URL + '?sheet=' + sheet + '&token=' + encodeURIComponent(TOKEN) + '&callback=' + cb + '&t=' + Date.now();
   document.body.appendChild(script);
 }
 
@@ -210,6 +212,7 @@ function confirmReset(name) {
 }
 
 function post(payload, after) {
+  payload.token = TOKEN;
   fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
     .then(done).catch(done);
   function done() { if (after) after(); setTimeout(loadUsers, 1400); }

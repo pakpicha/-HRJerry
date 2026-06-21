@@ -116,7 +116,7 @@ function getUser() { try { return JSON.parse(localStorage.getItem('hr_user') || 
 function showHub(user) {
   document.getElementById('loginView').style.display = 'none';
   document.getElementById('hubView').style.display = 'block';
-  var isAdmin = (user.role === 'admin');
+  var isAdmin = (String(user.role).trim().toLowerCase() === 'admin');
   document.getElementById('whoName').textContent = user.name || (isAdmin ? 'ผู้ดูแลระบบ' : 'พนักงาน');
   var roleEl = document.getElementById('whoRole');
   roleEl.textContent = isAdmin ? 'ผู้ดูแลระบบ (Admin)' : 'พนักงาน (Employee)';
@@ -160,7 +160,7 @@ function checkSession(nonce, tries) {
     clean();
     if (res && res.found) {
       if (res.ok) {
-        var user = { role: res.role, name: res.name };
+        var user = { role: res.role, name: res.name, token: res.token };
         try { localStorage.setItem('hr_user', JSON.stringify(user)); } catch (e) {}
         setBusy(false); showHub(user);
       } else { setBusy(false); showErr('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); }
