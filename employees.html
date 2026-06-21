@@ -90,6 +90,19 @@
         <input type="checkbox" id="hasOt"> มีสิทธิ์ OT
       </label>
 
+      <div class="sechead" style="color:#0369a1">การคิด OT รายคน</div>
+      <label class="f">วิธีคิด OT
+        <select id="otType">
+          <option value="monthly">เหมาเดือน (ยอดคงที่)</option>
+          <option value="daily">เหมาวัน (เรต × จำนวนวัน)</option>
+          <option value="hourly">รายชั่วโมง (เรต × ชม.)</option>
+          <option value="minute">รายนาที (เรต × นาที)</option>
+        </select>
+      </label>
+      <label class="f">เรต OT (บาท/หน่วย)
+        <input type="number" id="otRate" value="0" min="0" step="0.01">
+      </label>
+
       <div class="sechead">ยอดสะสมยกมา (อดีตก่อนใช้แอป)</div>
       <label class="f">สาย (นาที)
         <input type="number" id="initLateMinutes" value="0" min="0">
@@ -249,6 +262,10 @@ function render() {
     var hasOt = (e[4] === true || String(e[4]).toLowerCase() === 'true');
     var wfh = e[5];
     var iLate = num(e[6]), iAbsent = num(e[7]), iSick = num(e[8]), iPersonal = num(e[9]), iVac = num(e[10]);
+    var otType = e[11] ? String(e[11]) : 'monthly';
+    var otRate = num(e[12]);
+    var OT_TH = { monthly: 'เหมาเดือน', daily: 'เหมาวัน', hourly: 'รายชม.', minute: 'รายนาที' };
+    var otText = hasOt ? (OT_TH[otType] || otType) + ' ' + otRate + ' ฿' : '—';
     var sysLate = systemLateMinutesFor(e);
     var totLate = iLate + sysLate;
 
@@ -256,7 +273,7 @@ function render() {
       '<td><span class="name">' + esc(name) + '</span>' +
         '<span class="meta" style="display:block">เริ่มงาน ' + hiring + ' · ' + Number(salary).toLocaleString() + ' ฿</span>' +
         (hasOt ? '<span class="ot">มีสิทธิ์ OT</span>' : '') + '</td>' +
-      '<td>' + (hasOt ? '✓' : '<span class="muted">—</span>') + '</td>' +
+      '<td>' + (hasOt ? otText : '<span class="muted">—</span>') + '</td>' +
       '<td><span class="pill">' + esc(wfh) + ' วัน</span></td>' +
       '<td>สาย ' + iLate + ' น. / ขาด ' + iAbsent + ' วัน</td>' +
       '<td class="muted">' + iSick + ' / ' + iPersonal + ' / ' + iVac + ' วัน</td>' +
@@ -289,6 +306,7 @@ function editEmployee(id) {
   setVal('wfhQuota', e[5]);
   setVal('initLateMinutes', num(e[6])); setVal('initAbsent', num(e[7])); setVal('initSick', num(e[8]));
   setVal('initPersonal', num(e[9])); setVal('initVacation', num(e[10]));
+  setVal('otType', e[11] ? e[11] : 'monthly'); setVal('otRate', num(e[12]));
   document.getElementById('formTitle').textContent = 'แก้ไขข้อมูล: ' + e[1];
   document.getElementById('saveBtn').textContent = 'บันทึกการแก้ไข';
   document.getElementById('cancelBtn').style.display = 'inline-block';
@@ -301,6 +319,7 @@ function resetForm() {
   document.getElementById('hasOt').checked = false; setVal('wfhQuota', 4);
   setVal('initLateMinutes', 0); setVal('initAbsent', 0); setVal('initSick', 0);
   setVal('initPersonal', 0); setVal('initVacation', 0);
+  setVal('otType', 'monthly'); setVal('otRate', 0);
   document.getElementById('formTitle').textContent = 'เพิ่มพนักงานใหม่';
   document.getElementById('saveBtn').textContent = 'บันทึกพนักงาน';
   document.getElementById('cancelBtn').style.display = 'none';
@@ -333,6 +352,8 @@ function saveEmployee() {
     initSick: parseInt(val('initSick'), 10) || 0,
     initPersonal: parseInt(val('initPersonal'), 10) || 0,
     initVacation: parseInt(val('initVacation'), 10) || 0,
+    otType: val('otType'),
+    otRate: parseFloat(val('otRate')) || 0,
     token: TOKEN
   };
 
