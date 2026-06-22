@@ -123,8 +123,8 @@ var TOKEN = '';
 try { var _u = JSON.parse(localStorage.getItem('hr_user') || 'null'); TOKEN = (_u && _u.token) || ''; } catch (e) { TOKEN = ''; }
 function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e) {} window.location.href = 'index.html'; }
 
-var EMPLOYEES = [], ATTENDANCE = [], REQUESTS = [], ALLOWANCES = [], PAYROLL = [];
-var OT_TH = { monthly: 'เหมาเดือน', daily: 'เหมาวัน', hourly: 'รายชั่วโมง', minute: 'รายนาที' };
+var EMPLOYEES = [], ATTENDANCE = [], REQUESTS = [], ALLOWANCES = [], FIXED = [], PAYROLL = [];
+var OT_TH = { monthly: 'เหมาเดือน', quarterly: 'ทุก 3 เดือน', daily: 'เหมาวัน', hourly: 'รายชั่วโมง', minute: 'รายนาที' };
 var OT_UNIT = { daily: 'วัน', hourly: 'ชม.', minute: 'นาที' };
 
 function val(id) { return document.getElementById(id).value; }
@@ -155,9 +155,12 @@ function loadAll() {
         REQUESTS = (req && req.length > 1) ? req.slice(1) : [];
         jsonp('Allowances', function (al) {
           ALLOWANCES = (al && al.length > 1) ? al.slice(1) : [];
-          jsonp('Payroll', function (pay) {
-            PAYROLL = (pay && pay.length > 1) ? pay.slice(1) : [];
-            renderCards(); recalc();
+          jsonp('FixedAllowances', function (fx) {
+            FIXED = (fx && fx.length > 1) ? fx.slice(1) : [];
+            jsonp('Payroll', function (pay) {
+              PAYROLL = (pay && pay.length > 1) ? pay.slice(1) : [];
+              renderCards(); recalc();
+            });
           });
         });
       });
@@ -209,9 +212,14 @@ function latePenaltyFor(name, ym) {
 }
 function allowancesFor(name, ym) {
   var out = [];
+  for (var f = 0; f < FIXED.length; f++) {
+    if (String(FIXED[f][0]) === String(name)) {
+      out.push({ name: FIXED[f][1], amount: num(FIXED[f][2]), recurring: true });
+    }
+  }
   for (var i = 0; i < ALLOWANCES.length; i++) {
     if (String(ALLOWANCES[i][0]) === ym && String(ALLOWANCES[i][1]) === String(name)) {
-      out.push({ name: ALLOWANCES[i][2], amount: num(ALLOWANCES[i][3]) });
+      out.push({ name: ALLOWANCES[i][2], amount: num(ALLOWANCES[i][3]), recurring: false });
     }
   }
   return out;
@@ -239,9 +247,10 @@ function renderCards() {
     var otCtrl = '';
     if (!hasOt) {
       otCtrl = '<span class="mut">ไม่มีสิทธิ์ OT</span>';
-    } else if (otType === 'monthly') {
-      var amt = saved ? num(saved[3]) : otRate;
-      otCtrl = '<div class="otrow"><input type="number" id="otamt_' + k + '" value="' + amt + '" oninput="recalc()"><span class="unit">฿ (เหมาเดือน)</span></div>';
+    } else if (otType === 'monthly' || otType === 'quarterly') {
+      var amt = saved ? num(saved[3]) : (otType === 'monthly' ? otRate : 0);
+      var ulab = (otType === 'quarterly') ? '฿ (ใส่เฉพาะเดือนที่จ่าย — ก้อน ' + otRate + ')' : '฿ (เหมาเดือน)';
+      otCtrl = '<div class="otrow"><input type="number" id="otamt_' + k + '" value="' + amt + '" oninput="recalc()"><span class="unit">' + ulab + '</span></div>';
     } else {
       var qty = (saved && otRate > 0) ? Math.round(num(saved[3]) / otRate) : 0;
       otCtrl = '<div class="otrow"><input type="number" id="otqty_' + k + '" value="' + qty + '" oninput="recalc()"><span class="unit">' + (OT_UNIT[otType] || '') + ' × ' + otRate + ' ฿ = <b id="otval_' + k + '">0</b></span></div>';
@@ -250,8 +259,9 @@ function renderCards() {
     /* allowances */
     var als = allowancesFor(name, ym), alHtml = '';
     for (var a = 0; a < als.length; a++) {
-      alHtml += '<div class="arow"><span class="an">' + esc(als[a].name) + '</span><span><span class="aa">+' + money(als[a].amount) + ' ฿</span>' +
-        '<button class="delx" onclick="delAllow(\'' + k + '\',\'' + encodeURIComponent(als[a].name) + '\')">×</button></span></div>';
+      var tag = als[a].recurring ? '<span style="font-size:10px;color:#7c3aed;font-weight:700;background:#ede9fe;padding:1px 6px;border-radius:999px;margin-left:6px">ประจำ</span>' : '';
+      alHtml += '<div class="arow"><span class="an">' + esc(als[a].name) + tag + '</span><span><span class="aa">+' + money(als[a].amount) + ' ฿</span>' +
+        '<button class="delx" onclick="delAllow(\'' + k + '\',\'' + encodeURIComponent(als[a].name) + '\',' + (als[a].recurring ? 1 : 0) + ')">×</button></span></div>';
     }
 
     var comVal = saved ? num(saved[4]) : 0;
@@ -264,7 +274,8 @@ function renderCards() {
         '<div class="line"><span class="k">ค่าคอมมิชชัน</span><span class="v"><input type="number" id="com_' + k + '" value="' + comVal + '" oninput="recalc()"></span></div>' +
         '<div class="line" style="display:block"><div style="display:flex;justify-content:space-between"><span class="k">เบี้ยพิเศษ</span><span class="v green" id="altot_' + k + '">+0.00 ฿</span></div>' +
           '<div class="allow" id="allist_' + k + '">' + alHtml + '</div>' +
-          '<div class="addrow"><input class="an2" type="text" id="aln_' + k + '" placeholder="ชื่อเบี้ย เช่น ค่าน้ำมัน"><input class="aa2" type="number" id="ala_' + k + '" placeholder="จำนวน"><button onclick="addAllow(\'' + k + '\')">เพิ่ม</button></div></div>' +
+          '<div class="addrow"><input class="an2" type="text" id="aln_' + k + '" placeholder="ชื่อเบี้ย เช่น ค่าน้ำมัน"><input class="aa2" type="number" id="ala_' + k + '" placeholder="จำนวน"><button onclick="addAllow(\'' + k + '\')">เพิ่ม</button></div>' +
+          '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#7c3aed;margin-top:6px"><input type="checkbox" id="alfix_' + k + '" style="width:auto"> ตั้งเป็นค่าประจำ (จ่ายทุกเดือนอัตโนมัติ)</label></div>' +
         '<div class="line"><span class="k">โบนัสตรุษจีน</span><span class="v" id="cny_' + k + '">—</span></div>' +
         '<div class="line"><span class="k">คืนเงินค่าลา (ถ้าติ๊กงวดนี้)</span><span class="v green" id="refund_' + k + '">—</span></div>' +
         '<div class="line"><span class="k">หักค่าลาเดือนนี้ (<span id="ld_' + k + '">0</span> วัน)</span><span class="v red" id="leave_' + k + '">—</span></div>' +
@@ -301,7 +312,7 @@ function recalc() {
     /* OT */
     var ot = 0;
     if (hasOt) {
-      if (otType === 'monthly') { var ae = document.getElementById('otamt_' + k); ot = ae ? num(ae.value) : 0; }
+      if (otType === 'monthly' || otType === 'quarterly') { var ae = document.getElementById('otamt_' + k); ot = ae ? num(ae.value) : 0; }
       else { var qe = document.getElementById('otqty_' + k); var qty = qe ? num(qe.value) : 0; ot = qty * otRate; var ov = document.getElementById('otval_' + k); if (ov) ov.textContent = money(ot) + ' ฿'; }
     }
 
@@ -349,17 +360,21 @@ function addAllow(k) {
   var name = card.getAttribute('data-name');
   var an = document.getElementById('aln_' + k).value.trim();
   var aa = num(document.getElementById('ala_' + k).value);
+  var fix = document.getElementById('alfix_' + k).checked;
   if (!an) { return; }
-  post({ sheet: 'Allowances', monthYear: val('month'), userId: name, name: an, amount: aa }, function () {
-    setTimeout(loadAll, 1300);
-  });
+  var payload = fix
+    ? { sheet: 'FixedAllowances', userId: name, name: an, amount: aa }
+    : { sheet: 'Allowances', monthYear: val('month'), userId: name, name: an, amount: aa };
+  post(payload, function () { setTimeout(loadAll, 1300); });
 }
-function delAllow(k, encName) {
+function delAllow(k, encName, recurring) {
   var card = document.querySelector('.emp[data-id="' + k + '"]');
   var name = card.getAttribute('data-name');
-  post({ sheet: 'Allowances', action: 'deleteAllowance', monthYear: val('month'), userId: name, name: decodeURIComponent(encName) }, function () {
-    setTimeout(loadAll, 1300);
-  });
+  var nm = decodeURIComponent(encName);
+  var payload = recurring
+    ? { sheet: 'FixedAllowances', action: 'deleteFixed', userId: name, name: nm }
+    : { sheet: 'Allowances', action: 'deleteAllowance', monthYear: val('month'), userId: name, name: nm };
+  post(payload, function () { setTimeout(loadAll, 1300); });
 }
 
 function saveSlip(k) {
