@@ -192,7 +192,7 @@ function monthLeaveDays(name, ym) {
     var r = REQUESTS[i];
     if (String(r[1]) !== String(name)) continue;
     if (String(r[7]) !== 'approved') continue;
-    if (r[2] !== 'sick' && r[2] !== 'personal') continue;
+    if (r[2] === 'wfh') continue;
     d += leaveDaysInMonth(r[3], r[4], ym);
   }
   return d;
