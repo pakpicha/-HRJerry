@@ -105,12 +105,14 @@ function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e
 var COL = { code: 2, name: 3, date: 5, cin: 9, cout: 10, late: 13, absent: 15 };
 
 var EMPLOYEES = [];   /* [id, name, ...] */
+var HOLIDAYS = {};    /* { 'YYYY-MM-DD': true } */
 var RAW = [];         /* แถวดิบจากไฟล์ (ไม่รวมหัว) */
 var BUILT = [];       /* แถวที่จะนำเข้า */
 
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function normName(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
 function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function pdYMD(s) { var p = String(s).slice(0, 10).split('-'); return (p.length === 3 && p[0]) ? new Date(+p[0], +p[1] - 1, +p[2]) : null; }
 
 function toYMD(v) {
   if (!v) return '';
@@ -147,6 +149,22 @@ function loadEmployees(done) {
   document.body.appendChild(sc);
 }
 
+function loadHolidays(done) {
+  var cb = 'hol_' + Date.now();
+  var sc = document.createElement('script');
+  window[cb] = function (rows) {
+    if (rows && rows.error) { sessionExpired(); return; }
+    HOLIDAYS = {};
+    var arr = (rows && rows.length > 1) ? rows.slice(1) : [];
+    for (var i = 0; i < arr.length; i++) { var d = String(arr[i][0]).slice(0, 10); if (d) HOLIDAYS[d] = true; }
+    clean(); if (done) done();
+  };
+  function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (sc.parentNode) sc.parentNode.removeChild(sc); }
+  sc.onerror = function () { clean(); if (done) done(); };
+  sc.src = API_URL + '?sheet=Holidays&token=' + encodeURIComponent(TOKEN) + '&callback=' + cb + '&t=' + Date.now();
+  document.body.appendChild(sc);
+}
+
 function matchEmp(code, name) {
   var nn = normName(name);
   for (var i = 0; i < EMPLOYEES.length; i++) {
@@ -169,7 +187,7 @@ document.getElementById('file').addEventListener('change', function (ev) {
       var ws = wb.Sheets[wb.SheetNames[0]];
       var arr = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
       RAW = arr.length > 1 ? arr.slice(1) : [];
-      loadEmployees(rebuild);
+      loadEmployees(function () { loadHolidays(rebuild); });
     } catch (err) {
       document.getElementById('msg').innerHTML = '<span class="err">อ่านไฟล์ไม่ได้: ' + esc(err.message) + '</span>';
     }
@@ -190,6 +208,11 @@ function rebuild() {
     if (!code && !normName(fname)) continue;
     var cin = toHM(row[COL.cin]), cout = toHM(row[COL.cout]);
     var absent = truthy(row[COL.absent]);
+    var ymd = toYMD(row[COL.date]);
+    var dp = pdYMD(ymd);
+    var isSunday = dp && dp.getDay() === 0;
+    var isHoliday = !!HOLIDAYS[ymd];
+    if ((isSunday || isHoliday) && !cin) continue;   /* วันหยุด (อาทิตย์/นักขัตฤกษ์) ไม่มีตอกบัตร = ไม่นับขาด */
     if (!cin && !(incAbsent && absent)) continue;   /* ข้ามวันไม่มีตอกบัตร (เว้นแต่เลือกนำเข้าวันขาด) */
 
     var matched = matchEmp(code, fname);
@@ -203,7 +226,7 @@ function rebuild() {
     else { status = 'ปกติ'; }
     if (status === 'ขาด') nAb++;
 
-    BUILT.push({ date: toYMD(row[COL.date]), userId: userId, cin: cin, cout: cout, status: status, penalty: penalty, matched: !!matched });
+    BUILT.push({ date: ymd, userId: userId, cin: cin, cout: cout, status: status, penalty: penalty, matched: !!matched });
   }
   renderResult(nLate, nAb, unmatched, nUn);
 }

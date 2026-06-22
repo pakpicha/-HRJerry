@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>วันหยุดประจำปี · Smart HR</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: #f1f5f9; color: #1e293b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", Arial, sans-serif; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 14px 60px; }
+  header { background: linear-gradient(90deg, #1d4ed8, #312e81); color: #fff; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+  .hd { max-width: 680px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .hd .ico { font-size: 26px; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 700; }
+  header p { font-size: 12px; margin: 2px 0 0; color: #c7d2fe; }
+  .back { margin-left: auto; color: #c7d2fe; text-decoration: none; font-size: 13px; font-weight: 700; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-top: 16px; }
+  .card h2 { font-size: 15px; margin: 0 0 4px; color: #0f172a; }
+  .card .sub { font-size: 12px; color: #64748b; margin: 0 0 14px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #64748b; }
+  input { padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-family: inherit; }
+  input[type=date] { width: 160px; }
+  input[type=text] { flex: 1; min-width: 140px; }
+  button.primary { background: #2563eb; color: #fff; border: 0; padding: 10px 18px; border-radius: 11px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .note { font-size: 12px; color: #0369a1; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 6px; }
+  th { text-align: left; padding: 9px; background: #f8fafc; color: #475569; border-bottom: 1px solid #e2e8f0; }
+  td { padding: 9px; border-bottom: 1px solid #f1f5f9; }
+  .dow { font-size: 11px; color: #94a3b8; }
+  .delx { background: #fef2f2; color: #dc2626; border: 0; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 13px; }
+  .msg { font-size: 12px; margin-top: 8px; min-height: 16px; }
+  .ok { color: #059669; } .err { color: #b91c1c; }
+  #deny { display:none; max-width:420px; margin:80px auto; background:#fff; border:1px solid #e2e8f0; border-radius:18px; padding:30px; text-align:center; }
+  #deny a { display:inline-block; margin-top:14px; background:#2563eb; color:#fff; text-decoration:none; padding:10px 18px; border-radius:10px; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div id="deny"><h2>เฉพาะผู้ดูแลระบบ</h2><p>หน้านี้สำหรับ Admin เท่านั้น</p><a href="index.html">กลับหน้าหลัก</a></div>
+
+<div id="app" style="display:none">
+<header>
+  <div class="hd">
+    <span class="ico">📅</span>
+    <div><h1>วันหยุดประจำปี</h1><p>ตั้งวันหยุดนักขัตฤกษ์ / วันหยุดพิเศษ (สำนักงานหยุดวันอาทิตย์อยู่แล้ว)</p></div>
+    <a class="back" href="index.html">‹ หน้าหลัก</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <h2>เพิ่มวันหยุด</h2>
+    <p class="sub">เลือกวันที่ + ตั้งชื่อวันหยุด เช่น "สงกรานต์", "วันแรงงาน"</p>
+    <div class="row">
+      <label class="f">วันที่ <input type="date" id="date"></label>
+      <label class="f" style="flex:1">ชื่อวันหยุด <input type="text" id="name" placeholder="เช่น วันสงกรานต์"></label>
+      <button class="primary" onclick="addHoliday()">เพิ่ม</button>
+    </div>
+    <div class="msg" id="msg"></div>
+    <div class="note">📌 วันอาทิตย์เป็นวันหยุดประจำสัปดาห์อยู่แล้ว (ไม่ต้องเพิ่ม) — ที่นี่ใช้ตั้งวันหยุดนักขัตฤกษ์หรือวันหยุดพิเศษเพิ่มเติม</div>
+  </div>
+
+  <div class="card">
+    <h2>รายการวันหยุด</h2>
+    <table>
+      <thead><tr><th>วันที่</th><th>ชื่อวันหยุด</th><th></th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="3" class="empty">กำลังโหลด...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
+
+var USER = null;
+try { USER = JSON.parse(localStorage.getItem('hr_user') || 'null'); } catch (e) { USER = null; }
+if (!USER || String(USER.role).trim().toLowerCase() !== 'admin') {
+  document.getElementById('deny').style.display = 'block';
+} else {
+  document.getElementById('app').style.display = 'block';
+}
+var TOKEN = USER ? (USER.token || '') : '';
+function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e) {} window.location.href = 'index.html'; }
+
+var HOLIDAYS = [];
+var DOW_TH = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+
+function val(id) { return document.getElementById(id).value; }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function fmtDate(v) { var s = String(v); return (s.length >= 10 && s.charAt(4) === '-') ? s.slice(0, 10) : s; }
+function dowTH(ymd) { var p = String(ymd).split('-'); if (p.length !== 3) return ''; var d = new Date(+p[0], +p[1] - 1, +p[2]); return DOW_TH[d.getDay()]; }
+
+function jsonp(sheet, done) {
+  var cb = 'jp_' + Date.now();
+  var sc = document.createElement('script');
+  window[cb] = function (rows) { if (rows && rows.error) { clean(); sessionExpired(); return; } done(rows || []); clean(); };
+  function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (sc.parentNode) sc.parentNode.removeChild(sc); }
+  sc.onerror = function () { done(null); clean(); };
+  sc.src = API_URL + '?sheet=' + sheet + '&token=' + encodeURIComponent(TOKEN) + '&callback=' + cb + '&t=' + Date.now();
+  document.body.appendChild(sc);
+}
+
+function loadHolidays() {
+  jsonp('Holidays', function (rows) {
+    if (rows === null) { document.getElementById('tbody').innerHTML = '<tr><td colspan="3" class="empty">โหลดไม่ได้ — ตรวจว่ามีแท็บ Holidays และ redeploy แล้ว</td></tr>'; return; }
+    HOLIDAYS = rows.length > 1 ? rows.slice(1) : [];
+    HOLIDAYS.sort(function (a, b) { return fmtDate(a[0]) < fmtDate(b[0]) ? -1 : 1; });
+    render();
+  });
+}
+
+function render() {
+  var tbody = document.getElementById('tbody');
+  if (!HOLIDAYS.length) { tbody.innerHTML = '<tr><td colspan="3" class="empty">ยังไม่มีวันหยุด เพิ่มด้านบน</td></tr>'; return; }
+  var html = '';
+  for (var i = 0; i < HOLIDAYS.length; i++) {
+    var d = fmtDate(HOLIDAYS[i][0]), nm = HOLIDAYS[i][1];
+    html += '<tr><td>' + esc(d) + ' <span class="dow">(' + dowTH(d) + ')</span></td><td>' + esc(nm) + '</td>' +
+      '<td><button class="delx" onclick="delHoliday(\'' + esc(d) + '\')">ลบ</button></td></tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function post(payload, after) {
+  payload.token = TOKEN;
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).then(d).catch(d);
+  function d() { if (after) after(); setTimeout(loadHolidays, 1300); }
+}
+
+function addHoliday() {
+  var d = val('date'), nm = val('name').trim();
+  if (!d) { document.getElementById('msg').innerHTML = '<span class="err">เลือกวันที่ก่อน</span>'; return; }
+  document.getElementById('msg').innerHTML = 'กำลังบันทึก...';
+  post({ sheet: 'Holidays', date: d, name: nm }, function () {
+    document.getElementById('msg').innerHTML = '<span class="ok">เพิ่มวันหยุดแล้ว ✓</span>';
+    document.getElementById('name').value = '';
+  });
+}
+function delHoliday(d) {
+  if (!confirm('ลบวันหยุด ' + d + ' ?')) return;
+  post({ sheet: 'Holidays', action: 'delete', date: d }, function () {});
+}
+
+if (USER && String(USER.role).trim().toLowerCase() === 'admin') loadHolidays();
+</script>
+</body>
+</html>
