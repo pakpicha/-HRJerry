@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>นำเข้าเวลาตอกบัตร · Smart HR</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: #f1f5f9; color: #1e293b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", Arial, sans-serif; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 14px 60px; }
+  header { background: linear-gradient(90deg, #1d4ed8, #312e81); color: #fff; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+  .hd { max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .hd .ico { font-size: 26px; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 700; }
+  header p { font-size: 12px; margin: 2px 0 0; color: #c7d2fe; }
+  .back { margin-left: auto; color: #c7d2fe; text-decoration: none; font-size: 13px; font-weight: 700; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-top: 16px; }
+  .card h2 { font-size: 15px; margin: 0 0 4px; color: #0f172a; }
+  .card .sub { font-size: 12px; color: #64748b; margin: 0 0 14px; line-height: 1.6; }
+  .drop { border: 2px dashed #c7d2fe; border-radius: 14px; padding: 26px; text-align: center; background: #f8fafc; cursor: pointer; }
+  .drop:hover { background: #eef2ff; }
+  .drop .big { font-size: 30px; }
+  .drop p { margin: 8px 0 0; font-size: 13px; color: #475569; }
+  input[type=file] { display: none; }
+  .opts { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+  .opts label { font-size: 13px; color: #334155; display: flex; align-items: center; gap: 6px; }
+  .opts input[type=number] { width: 80px; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 9px; font-family: inherit; }
+  .stat { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .pill { background: #f1f5f9; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #334155; }
+  .pill b { color: #1d4ed8; }
+  .pill.warn { background: #fef2f2; color: #b91c1c; }
+  .tablewrap { overflow-x: auto; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 8px; background: #f8fafc; color: #475569; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+  td { padding: 8px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+  .b-late { color: #d97706; font-weight: 700; }
+  .b-ab { color: #dc2626; font-weight: 700; }
+  .b-ok { color: #059669; }
+  .unmatch { background: #fff7ed; }
+  .btn { background: #2563eb; color: #fff; border: 0; padding: 12px 22px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 16px; }
+  .btn:disabled { background: #93c5fd; }
+  .msg { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .ok { color: #059669; } .err { color: #b91c1c; }
+  #deny { display:none; max-width:420px; margin:80px auto; background:#fff; border:1px solid #e2e8f0; border-radius:18px; padding:30px; text-align:center; }
+  #deny a { display:inline-block; margin-top:14px; background:#2563eb; color:#fff; text-decoration:none; padding:10px 18px; border-radius:10px; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div id="deny"><h2>เฉพาะผู้ดูแลระบบ</h2><p>หน้านี้สำหรับ Admin เท่านั้น</p><a href="index.html">กลับหน้าหลัก</a></div>
+
+<div id="app" style="display:none">
+<header>
+  <div class="hd">
+    <span class="ico">📥</span>
+    <div><h1>นำเข้าเวลาตอกบัตร</h1><p>อัปไฟล์จากเครื่องสแกน (.xls/.xlsx/.csv) → ลงตาราง Attendance</p></div>
+    <a class="back" href="index.html">‹ หน้าหลัก</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <h2>1) เลือกไฟล์รายงานจากเครื่องสแกน</h2>
+    <p class="sub">รองรับไฟล์ Excel (.xls/.xlsx) หรือ CSV ที่ส่งออกจากโปรแกรมเครื่องสแกน — ระบบจะอ่านคอลัมน์ รหัส/ชื่อ/วันที่/เวลาตอกบัตร ให้อัตโนมัติ</p>
+    <div class="drop" onclick="document.getElementById('file').click()">
+      <div class="big">📄</div>
+      <p id="dropText">แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวาง</p>
+    </div>
+    <input type="file" id="file" accept=".xls,.xlsx,.csv">
+    <div class="opts">
+      <label>ค่าปรับสาย (บาท/นาที) <input type="number" id="rate" value="5" min="0" step="0.5" oninput="rebuild()"></label>
+      <label><input type="checkbox" id="incAbsent" onchange="rebuild()"> นำเข้าวันที่ "ขาด" ด้วย</label>
+    </div>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2>2) ตรวจสอบก่อนนำเข้า</h2>
+    <div class="stat" id="stat"></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>วันที่</th><th>พนักงาน</th><th>เข้า</th><th>ออก</th><th>สถานะ</th><th>ค่าปรับ</th></tr></thead>
+      <tbody id="preview"></tbody>
+    </table></div>
+    <p class="sub" id="more" style="margin-top:8px"></p>
+    <button class="btn" id="importBtn" onclick="doImport()">📥 นำเข้าลงระบบ</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
+
+var USER = null;
+try { USER = JSON.parse(localStorage.getItem('hr_user') || 'null'); } catch (e) { USER = null; }
+if (!USER || String(USER.role).trim().toLowerCase() !== 'admin') {
+  document.getElementById('deny').style.display = 'block';
+} else {
+  document.getElementById('app').style.display = 'block';
+}
+var TOKEN = USER ? (USER.token || '') : '';
+function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e) {} window.location.href = 'index.html'; }
+
+/* ตำแหน่งคอลัมน์มาตรฐานของไฟล์เครื่องสแกน (0-based) */
+var COL = { code: 2, name: 3, date: 5, cin: 9, cout: 10, late: 13, absent: 15 };
+
+var EMPLOYEES = [];   /* [id, name, ...] */
+var RAW = [];         /* แถวดิบจากไฟล์ (ไม่รวมหัว) */
+var BUILT = [];       /* แถวที่จะนำเข้า */
+
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function normName(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+function toYMD(v) {
+  if (!v) return '';
+  var s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);   /* D/M/YYYY */
+  if (m) return m[3] + '-' + pad2(parseInt(m[2], 10)) + '-' + pad2(parseInt(m[1], 10));
+  return s;
+}
+function toHM(v) {
+  if (!v) return '';
+  var s = String(v).trim();
+  var m = s.match(/(\d{1,2}):(\d{2})/);
+  return m ? pad2(parseInt(m[1], 10)) + ':' + m[2] : '';
+}
+function lateMinutes(v) {
+  var hm = toHM(v); if (!hm) return 0;
+  var p = hm.split(':'); return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+}
+function truthy(v) { var s = String(v).trim().toLowerCase(); return s === 'true' || s === '1' || s === 'yes'; }
+
+/* โหลดทะเบียนพนักงานไว้จับคู่ */
+function loadEmployees(done) {
+  var cb = 'emp_' + Date.now();
+  var sc = document.createElement('script');
+  window[cb] = function (rows) {
+    if (rows && rows.error) { sessionExpired(); return; }
+    EMPLOYEES = (rows && rows.length > 1) ? rows.slice(1) : [];
+    clean(); if (done) done();
+  };
+  function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (sc.parentNode) sc.parentNode.removeChild(sc); }
+  sc.onerror = function () { clean(); if (done) done(); };
+  sc.src = API_URL + '?sheet=Employees&token=' + encodeURIComponent(TOKEN) + '&callback=' + cb + '&t=' + Date.now();
+  document.body.appendChild(sc);
+}
+
+function matchEmp(code, name) {
+  var nn = normName(name);
+  for (var i = 0; i < EMPLOYEES.length; i++) {
+    if (code && String(EMPLOYEES[i][0]) === String(code)) return EMPLOYEES[i][1];
+  }
+  for (var j = 0; j < EMPLOYEES.length; j++) {
+    if (nn && normName(EMPLOYEES[j][1]) === nn) return EMPLOYEES[j][1];
+  }
+  return null;
+}
+
+document.getElementById('file').addEventListener('change', function (ev) {
+  var f = ev.target.files[0];
+  if (!f) return;
+  document.getElementById('dropText').textContent = 'ไฟล์: ' + f.name;
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      var wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: false, codepage: 874 });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var arr = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+      RAW = arr.length > 1 ? arr.slice(1) : [];
+      loadEmployees(rebuild);
+    } catch (err) {
+      document.getElementById('msg').innerHTML = '<span class="err">อ่านไฟล์ไม่ได้: ' + esc(err.message) + '</span>';
+    }
+  };
+  reader.readAsArrayBuffer(f);
+});
+
+function rebuild() {
+  if (!RAW.length) return;
+  var rate = parseFloat(document.getElementById('rate').value) || 0;
+  var incAbsent = document.getElementById('incAbsent').checked;
+  BUILT = [];
+  var unmatched = {}, nUn = 0, nLate = 0, nAb = 0;
+  for (var i = 0; i < RAW.length; i++) {
+    var row = RAW[i];
+    var code = String(row[COL.code] == null ? '' : row[COL.code]).trim();
+    var fname = row[COL.name];
+    if (!code && !normName(fname)) continue;
+    var cin = toHM(row[COL.cin]), cout = toHM(row[COL.cout]);
+    var absent = truthy(row[COL.absent]);
+    if (!cin && !(incAbsent && absent)) continue;   /* ข้ามวันไม่มีตอกบัตร (เว้นแต่เลือกนำเข้าวันขาด) */
+
+    var matched = matchEmp(code, fname);
+    var userId = matched || normName(fname);
+    if (!matched) { if (!unmatched[code + normName(fname)]) { unmatched[code + normName(fname)] = (code || normName(fname)); nUn++; } }
+
+    var lm = lateMinutes(row[COL.late]);
+    var status, penalty = 0;
+    if (!cin && absent) { status = 'ขาด'; }
+    else if (lm > 0) { status = 'สาย'; penalty = lm * rate; nLate++; }
+    else { status = 'ปกติ'; }
+    if (status === 'ขาด') nAb++;
+
+    BUILT.push({ date: toYMD(row[COL.date]), userId: userId, cin: cin, cout: cout, status: status, penalty: penalty, matched: !!matched });
+  }
+  renderResult(nLate, nAb, unmatched, nUn);
+}
+
+function renderResult(nLate, nAb, unmatched, nUn) {
+  document.getElementById('result').style.display = 'block';
+  var stat = '<span class="pill">รวม <b>' + BUILT.length + '</b> แถว</span>' +
+    '<span class="pill">สาย <b>' + nLate + '</b></span>' +
+    '<span class="pill">ขาด <b>' + nAb + '</b></span>';
+  if (nUn > 0) {
+    var list = []; for (var k in unmatched) { if (unmatched.hasOwnProperty(k)) list.push(unmatched[k]); }
+    stat += '<span class="pill warn">จับคู่ไม่ได้ ' + nUn + ' คน: ' + esc(list.join(', ')).slice(0, 120) + '</span>';
+  }
+  document.getElementById('stat').innerHTML = stat;
+
+  var html = '';
+  for (var i = 0; i < BUILT.length && i < 20; i++) {
+    var b = BUILT[i];
+    var st = b.status === 'สาย' ? '<span class="b-late">สาย</span>' : (b.status === 'ขาด' ? '<span class="b-ab">ขาด</span>' : '<span class="b-ok">ปกติ</span>');
+    html += '<tr class="' + (b.matched ? '' : 'unmatch') + '"><td>' + esc(b.date) + '</td><td>' + esc(b.userId) + (b.matched ? '' : ' ⚠️') + '</td><td>' + esc(b.cin) + '</td><td>' + esc(b.cout) + '</td><td>' + st + '</td><td>' + (b.penalty ? b.penalty.toFixed(0) : '-') + '</td></tr>';
+  }
+  document.getElementById('preview').innerHTML = html;
+  document.getElementById('more').textContent = BUILT.length > 20 ? ('...และอีก ' + (BUILT.length - 20) + ' แถว (แสดง 20 แถวแรก)') : '';
+  document.getElementById('importBtn').disabled = BUILT.length === 0;
+}
+
+function doImport() {
+  if (!BUILT.length) return;
+  var btn = document.getElementById('importBtn');
+  btn.disabled = true;
+  document.getElementById('msg').innerHTML = 'กำลังนำเข้า ' + BUILT.length + ' แถว...';
+  var rows = [];
+  for (var i = 0; i < BUILT.length; i++) {
+    var b = BUILT[i];
+    rows.push([b.date, b.userId, b.cin, b.cout, b.status, b.penalty]);
+  }
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ sheet: 'Attendance', action: 'bulk', rows: rows, token: TOKEN }) })
+    .then(after).catch(after);
+  function after() {
+    setTimeout(function () {
+      document.getElementById('msg').innerHTML = '<span class="ok">นำเข้าสำเร็จ ' + BUILT.length + ' แถว ✓ (ตรวจดูในหน้าลงเวลา)</span>';
+      btn.disabled = false;
+    }, 2500);
+  }
+}
+</script>
+</body>
+</html>
