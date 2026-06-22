@@ -113,6 +113,8 @@ var BUILT = [];       /* แถวที่จะนำเข้า */
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function normName(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
 function pad2(n) { return (n < 10 ? '0' : '') + n; }
+var MON_ABBR = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+function beDate(v) { var s = String(v == null ? '' : v).slice(0, 10); var p = s.split('-'); if (p.length !== 3 || !p[0]) return s; return parseInt(p[2], 10) + ' ' + MON_ABBR[parseInt(p[1], 10)] + ' ' + (parseInt(p[0], 10) + 543); }
 function pdYMD(s) { var p = String(s).slice(0, 10).split('-'); return (p.length === 3 && p[0]) ? new Date(+p[0], +p[1] - 1, +p[2]) : null; }
 
 function toYMD(v) {
@@ -252,7 +254,7 @@ function renderResult(nLate, nAb, unmatched, nUn) {
   for (var i = 0; i < BUILT.length && i < 20; i++) {
     var b = BUILT[i];
     var st = b.status === 'สาย' ? '<span class="b-late">สาย</span>' : (b.status === 'ขาด' ? '<span class="b-ab">ขาด</span>' : '<span class="b-ok">ปกติ</span>');
-    html += '<tr class="' + (b.matched ? '' : 'unmatch') + '"><td>' + esc(b.date) + '</td><td>' + esc(b.userId) + (b.matched ? '' : ' ⚠️') + '</td><td>' + esc(b.cin) + '</td><td>' + esc(b.cout) + '</td><td>' + st + '</td><td>' + (b.penalty ? b.penalty.toFixed(0) : '-') + '</td></tr>';
+    html += '<tr class="' + (b.matched ? '' : 'unmatch') + '"><td>' + esc(beDate(b.date)) + '</td><td>' + esc(b.userId) + (b.matched ? '' : ' ⚠️') + '</td><td>' + esc(b.cin) + '</td><td>' + esc(b.cout) + '</td><td>' + st + '</td><td>' + (b.penalty ? b.penalty.toFixed(0) : '-') + '</td></tr>';
   }
   document.getElementById('preview').innerHTML = html;
   document.getElementById('more').textContent = BUILT.length > 20 ? ('...และอีก ' + (BUILT.length - 20) + ' แถว (แสดง 20 แถวแรก)') : '';

@@ -131,6 +131,8 @@ function val(id) { return document.getElementById(id).value; }
 function money(n) { return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function fmtDate(v) { if (!v) return ''; var s = String(v); return (s.length >= 10 && s.charAt(4) === '-') ? s.slice(0, 10) : s; }
+var MON_ABBR = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+function beMonth(ym) { var p = String(ym).split('-'); if (p.length < 2 || !p[0]) return ym; return MON_ABBR[parseInt(p[1], 10)] + ' ' + (parseInt(p[0], 10) + 543); }
 function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
 function jsonp(sheet, done) {
@@ -145,7 +147,7 @@ function jsonp(sheet, done) {
 
 function loadAll() {
   document.getElementById('list').innerHTML = '<div class="empty">กำลังโหลด...</div>';
-  document.getElementById('mlabel').textContent = val('month');
+  document.getElementById('mlabel').textContent = beMonth(val('month'));
   jsonp('Employees', function (emp) {
     if (emp === null) { document.getElementById('list').innerHTML = '<div class="empty">โหลดไม่ได้ — ตรวจ redeploy เวอร์ชันใหม่</div>'; return; }
     EMPLOYEES = (emp && emp.length > 1) ? emp.slice(1) : [];

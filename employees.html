@@ -51,6 +51,7 @@
   .muted { color: #94a3b8; }
   .empty { text-align: center; color: #94a3b8; padding: 24px; font-size: 13px; }
   .edit { background: #eef2ff; color: #4338ca; border: 0; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .delx { background: #fef2f2; color: #dc2626; border: 0; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .refresh { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: #475569; font-family: inherit; }
   footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 22px; }
@@ -94,6 +95,7 @@
       <label class="f">วิธีคิด OT
         <select id="otType">
           <option value="monthly">เหมาเดือน (ยอดคงที่)</option>
+          <option value="quarterly">ทุก 3 เดือน (จ่ายก้อนรายไตรมาส)</option>
           <option value="daily">เหมาวัน (เรต × จำนวนวัน)</option>
           <option value="hourly">รายชั่วโมง (เรต × ชม.)</option>
           <option value="minute">รายนาที (เรต × นาที)</option>
@@ -285,7 +287,7 @@ function render() {
 
     html += '<tr>' +
       '<td><span class="name">' + esc(name) + '</span>' +
-        '<span class="meta" style="display:block">เริ่มงาน ' + hiring + ' · ' + Number(salary).toLocaleString() + ' ฿</span>' +
+        '<span class="meta" style="display:block">เริ่มงาน ' + beDate(e[3]) + ' · ' + Number(salary).toLocaleString() + ' ฿</span>' +
         (hasOt ? '<span class="ot">มีสิทธิ์ OT</span>' : '') + '</td>' +
       '<td>' + (hasOt ? otText : '<span class="muted">—</span>') + '</td>' +
       '<td><span class="pill">' + esc(wfh) + ' วัน</span></td>' +
@@ -293,7 +295,8 @@ function render() {
       '<td class="muted">' + iSick + ' / ' + iPersonal + ' / ' + iVac + ' วัน</td>' +
       '<td><span class="totlate">' + totLate + '</span>' +
         '<span class="meta" style="display:block">ยกมา ' + iLate + ' + ระบบ ' + sysLate + '</span></td>' +
-      '<td><button class="edit" onclick="editEmployee(\'' + esc(String(id)) + '\')">แก้ไข</button></td>' +
+      '<td><button class="edit" onclick="editEmployee(\'' + esc(String(id)) + '\')">แก้ไข</button> ' +
+        '<button class="delx" onclick="delEmp(\'' + esc(String(id)) + '\',\'' + encodeURIComponent(String(name)) + '\')">ลบ</button></td>' +
       '</tr>';
   }
   tbody.innerHTML = html;
@@ -305,8 +308,19 @@ function fmtDate(v) {
   if (s.length >= 10 && s.charAt(4) === '-') return s.slice(0, 10);
   return s;
 }
+var MON_ABBR = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+function beDate(v) { var s = fmtDate(v); var p = s.split('-'); if (p.length !== 3 || !p[0]) return s; return parseInt(p[2], 10) + ' ' + MON_ABBR[parseInt(p[1], 10)] + ' ' + (parseInt(p[0], 10) + 543); }
 function esc(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;');
+}
+
+/* ====== ลบพนักงาน ====== */
+function delEmp(id, encName) {
+  var name = decodeURIComponent(encName);
+  if (!confirm('ลบพนักงาน "' + name + '" ออกจากทะเบียน? (ลบถาวร — ข้อมูลลงเวลา/ใบลาเดิมจะยังอยู่)')) return;
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ sheet: 'Employees', action: 'delete', id: id, token: TOKEN }) })
+    .then(function () { setTimeout(loadAll, 1300); })
+    .catch(function () { setTimeout(loadAll, 1300); });
 }
 
 /* ====== โหลดข้อมูลคนหนึ่งเข้าฟอร์มเพื่อแก้ไข ====== */

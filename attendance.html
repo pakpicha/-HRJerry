@@ -69,6 +69,7 @@
   .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
   .red { color: #dc2626; font-weight: 600; }
   .muted { color: #94a3b8; }
+  .delx { background: #fef2f2; color: #dc2626; border: 0; padding: 5px 11px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .empty { text-align: center; color: #94a3b8; padding: 24px; font-size: 13px; }
   .row-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .refresh { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; font-size: 12px; cursor: pointer; color: #475569; font-family: inherit; }
@@ -281,6 +282,8 @@ function fmtDate(v) {
   if (s.length >= 10 && s.charAt(4) === '-') return s.slice(0, 10); /* ตัด ISO ให้เหลือวันที่ */
   return s;
 }
+var MON_ABBR = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+function beDate(v) { var s = fmtDate(v); var p = s.split('-'); if (p.length !== 3 || !p[0]) return s; return parseInt(p[2], 10) + ' ' + MON_ABBR[parseInt(p[1], 10)] + ' ' + (parseInt(p[0], 10) + 543); }
 
 function esc(s) {
   return String(s == null ? '' : s)
@@ -302,20 +305,30 @@ function render(rows) {
   for (var i = rows.length - 1; i >= 1; i--) {
     var r = rows[i];
     if (!IS_ADMIN && String(r[1]) !== String(ME.name)) continue;
-    var date = fmtDate(r[0]);
+    var date = beDate(r[0]);
     var userId = esc(r[1]);
     var ci = esc(r[2]), co = esc(r[3]);
     var status = r[4];
     var fee = parseFloat(r[5]) || 0;
+    var rawDate = fmtDate(r[0]), rawName = String(r[1] == null ? '' : r[1]);
     html += '<tr>' +
       '<td class="muted">' + date + '</td>' +
       '<td>' + userId + '</td>' +
       '<td class="mono">' + ci + '–' + co + '</td>' +
       '<td>' + badgeFor(status) + '</td>' +
       '<td class="' + (fee > 0 ? 'red' : 'muted') + '">' + (fee > 0 ? '-' + fee.toFixed(2) + ' ฿' : '—') + '</td>' +
+      (IS_ADMIN ? '<td><button class="delx" onclick="delAtt(\'' + esc(rawDate) + '\',\'' + encodeURIComponent(rawName) + '\')">ลบ</button></td>' : '') +
       '</tr>';
   }
   tbody.innerHTML = html;
+}
+
+function delAtt(date, encName) {
+  var name = decodeURIComponent(encName);
+  if (!confirm('ลบรายการลงเวลาวันที่ ' + beDate(date) + ' ของ ' + name + ' ?')) return;
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ sheet: 'Attendance', action: 'delete', date: date, userId: name, token: TOKEN }) })
+    .then(function () { setTimeout(loadData, 1300); })
+    .catch(function () { setTimeout(loadData, 1300); });
 }
 
 /* ====== เริ่มต้น ====== */

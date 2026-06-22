@@ -42,6 +42,7 @@
   .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-y { background: #059669; color: #fff; border: 0; padding: 7px 14px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .btn-n { background: #fef2f2; color: #dc2626; border: 0; padding: 7px 14px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-del { background: #f1f5f9; color: #64748b; border: 0; padding: 7px 14px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
   .b-app { background: #d1fae5; color: #065f46; }
   .b-rej { background: #fee2e2; color: #b91c1c; }
@@ -145,6 +146,8 @@ function val(id) { return document.getElementById(id).value; }
 function showMsg(t, type) { var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg show ' + type; }
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;'); }
 function fmtDate(v) { if (!v) return ''; var s = String(v); return (s.length >= 10 && s.charAt(4) === '-') ? s.slice(0, 10) : s; }
+var MON_ABBR = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+function beDate(v) { var s = fmtDate(v); var p = s.split('-'); if (p.length !== 3 || !p[0]) return s; return parseInt(p[2], 10) + ' ' + MON_ABBR[parseInt(p[1], 10)] + ' ' + (parseInt(p[0], 10) + 543); }
 
 function jsonp(sheet, done) {
   var cb = 'jsonp_' + sheet + '_' + Date.now();
@@ -219,7 +222,7 @@ function renderRequests() {
 
 function reqCard(r, isPending) {
   var id = r[0], who = r[1], type = r[2];
-  var sd = fmtDate(r[3]), ed = fmtDate(r[4]), days = r[5], reason = r[6], status = r[7], decReason = r[9];
+  var sd = beDate(r[3]), ed = beDate(r[4]), days = r[5], reason = r[6], status = r[7], decReason = r[9];
   var tagCls = (type === 'wfh') ? 'tag wfh' : 'tag';
   var h = '<div class="req"><div class="line1">' +
     '<span class="nm">' + esc(who) + '</span>' +
@@ -238,11 +241,21 @@ function reqCard(r, isPending) {
     } else {
       h += '<div class="actions">' +
         '<button class="btn-y" onclick="decide(\'' + esc(String(id)) + '\',\'approved\',\'\')">✓ อนุมัติ</button>' +
-        '<button class="btn-n" onclick="startReject(\'' + esc(String(id)) + '\')">✕ ปฏิเสธ</button></div>';
+        '<button class="btn-n" onclick="startReject(\'' + esc(String(id)) + '\')">✕ ปฏิเสธ</button>' +
+        (IS_ADMIN ? '<button class="btn-del" onclick="delReq(\'' + esc(String(id)) + '\')">🗑 ลบ</button>' : '') + '</div>';
     }
+  } else if (IS_ADMIN) {
+    h += '<div class="actions"><button class="btn-del" onclick="delReq(\'' + esc(String(id)) + '\')">🗑 ลบ</button></div>';
   }
   h += '</div>';
   return h;
+}
+
+function delReq(id) {
+  if (!confirm('ลบคำร้องนี้? (ลบถาวร)')) return;
+  fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ sheet: 'Requests', action: 'delete', id: id, token: TOKEN }) })
+    .then(function () { setTimeout(loadAll, 1300); })
+    .catch(function () { setTimeout(loadAll, 1300); });
 }
 
 function startReject(id) { rejectingId = id; renderRequests(); }
