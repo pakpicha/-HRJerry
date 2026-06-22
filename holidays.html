@@ -58,6 +58,7 @@
       <label class="f" style="flex:1">ชื่อวันหยุด <input type="text" id="name" placeholder="เช่น วันสงกรานต์"></label>
       <button class="primary" onclick="addHoliday()">เพิ่ม</button>
     </div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#7c3aed;margin-top:10px"><input type="checkbox" id="recurring" style="width:auto"> หยุดทุกปี (วัน-เดือนนี้ซ้ำทุกปี เช่น ปีใหม่ วันพ่อ สงกรานต์)</label>
     <div class="msg" id="msg"></div>
     <div class="note">📌 วันอาทิตย์เป็นวันหยุดประจำสัปดาห์อยู่แล้ว (ไม่ต้องเพิ่ม) — ที่นี่ใช้ตั้งวันหยุดนักขัตฤกษ์หรือวันหยุดพิเศษเพิ่มเติม</div>
   </div>
@@ -87,6 +88,7 @@ function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e
 
 var HOLIDAYS = [];
 var DOW_TH = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+var MON_TH = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
 function val(id) { return document.getElementById(id).value; }
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -118,7 +120,16 @@ function render() {
   var html = '';
   for (var i = 0; i < HOLIDAYS.length; i++) {
     var d = fmtDate(HOLIDAYS[i][0]), nm = HOLIDAYS[i][1];
-    html += '<tr><td>' + esc(d) + ' <span class="dow">(' + dowTH(d) + ')</span></td><td>' + esc(nm) + '</td>' +
+    var rec = String(HOLIDAYS[i][2] || '').toLowerCase() === 'yes';
+    var p = d.split('-');
+    var label, tag = '';
+    if (rec) {
+      label = (p.length === 3 ? (parseInt(p[2], 10) + ' ' + MON_TH[parseInt(p[1], 10)]) : d);
+      tag = ' <span style="font-size:11px;color:#7c3aed;font-weight:700;background:#ede9fe;padding:1px 8px;border-radius:999px">ทุกปี</span>';
+    } else {
+      label = d + ' <span class="dow">(' + dowTH(d) + ')</span>';
+    }
+    html += '<tr><td>' + label + tag + '</td><td>' + esc(nm) + '</td>' +
       '<td><button class="delx" onclick="delHoliday(\'' + esc(d) + '\')">ลบ</button></td></tr>';
   }
   tbody.innerHTML = html;
@@ -132,11 +143,13 @@ function post(payload, after) {
 
 function addHoliday() {
   var d = val('date'), nm = val('name').trim();
+  var rec = document.getElementById('recurring').checked ? 'yes' : '';
   if (!d) { document.getElementById('msg').innerHTML = '<span class="err">เลือกวันที่ก่อน</span>'; return; }
   document.getElementById('msg').innerHTML = 'กำลังบันทึก...';
-  post({ sheet: 'Holidays', date: d, name: nm }, function () {
+  post({ sheet: 'Holidays', date: d, name: nm, recurring: rec }, function () {
     document.getElementById('msg').innerHTML = '<span class="ok">เพิ่มวันหยุดแล้ว ✓</span>';
     document.getElementById('name').value = '';
+    document.getElementById('recurring').checked = false;
   });
 }
 function delHoliday(d) {

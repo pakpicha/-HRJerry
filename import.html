@@ -105,7 +105,8 @@ function sessionExpired() { try { localStorage.removeItem('hr_user'); } catch (e
 var COL = { code: 2, name: 3, date: 5, cin: 9, cout: 10, late: 13, absent: 15 };
 
 var EMPLOYEES = [];   /* [id, name, ...] */
-var HOLIDAYS = {};    /* { 'YYYY-MM-DD': true } */
+var HOLIDAYS = {};    /* { 'YYYY-MM-DD': true } เฉพาะวัน */
+var HOLIDAYS_MD = {}; /* { 'MM-DD': true } หยุดทุกปี */
 var RAW = [];         /* แถวดิบจากไฟล์ (ไม่รวมหัว) */
 var BUILT = [];       /* แถวที่จะนำเข้า */
 
@@ -154,9 +155,14 @@ function loadHolidays(done) {
   var sc = document.createElement('script');
   window[cb] = function (rows) {
     if (rows && rows.error) { sessionExpired(); return; }
-    HOLIDAYS = {};
+    HOLIDAYS = {}; HOLIDAYS_MD = {};
     var arr = (rows && rows.length > 1) ? rows.slice(1) : [];
-    for (var i = 0; i < arr.length; i++) { var d = String(arr[i][0]).slice(0, 10); if (d) HOLIDAYS[d] = true; }
+    for (var i = 0; i < arr.length; i++) {
+      var d = String(arr[i][0]).slice(0, 10);
+      if (!d) continue;
+      var rec = String(arr[i][2] || '').toLowerCase() === 'yes';
+      if (rec) { HOLIDAYS_MD[d.slice(5)] = true; } else { HOLIDAYS[d] = true; }
+    }
     clean(); if (done) done();
   };
   function clean() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (sc.parentNode) sc.parentNode.removeChild(sc); }
@@ -211,7 +217,7 @@ function rebuild() {
     var ymd = toYMD(row[COL.date]);
     var dp = pdYMD(ymd);
     var isSunday = dp && dp.getDay() === 0;
-    var isHoliday = !!HOLIDAYS[ymd];
+    var isHoliday = !!HOLIDAYS[ymd] || !!HOLIDAYS_MD[ymd.slice(5)];
     if ((isSunday || isHoliday) && !cin) continue;   /* วันหยุด (อาทิตย์/นักขัตฤกษ์) ไม่มีตอกบัตร = ไม่นับขาด */
     if (!cin && !(incAbsent && absent)) continue;   /* ข้ามวันไม่มีตอกบัตร (เว้นแต่เลือกนำเข้าวันขาด) */
 
