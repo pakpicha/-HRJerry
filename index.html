@@ -4,132 +4,177 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Smart HR &amp; Payroll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg: #f6f7fb; --card: #ffffff; --ink: #1f2433; --muted: #8a90a2;
+    --line: #eceef4; --primary: #4f46e5; --primary2: #7c3aed;
+    --shadow: 0 6px 24px rgba(40,44,80,.07);
+  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin: 0; background: #f1f5f9; color: #1e293b;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", "Helvetica Neue", Arial, sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Prompt", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-weight: 400; }
 
-  /* ===== LOGIN VIEW ===== */
-  #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #1d4ed8, #312e81); padding: 20px; }
-  .box { background: #fff; width: 100%; max-width: 380px; border-radius: 22px; padding: 30px 26px;
-    box-shadow: 0 18px 50px rgba(0,0,0,.28); }
-  .logo { text-align: center; font-size: 40px; margin-bottom: 6px; }
-  .box h1 { text-align: center; font-size: 20px; margin: 0 0 2px; color: #0f172a; }
-  .box .sub { text-align: center; font-size: 12px; color: #64748b; margin: 0 0 22px; }
-  .box label { display: block; font-size: 12px; color: #475569; font-weight: 600; margin: 12px 0 5px; }
-  .box input { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 15px; color: #1e293b; font-family: inherit; }
-  .box input:focus { outline: none; border-color: #2563eb; }
-  .box button { width: 100%; margin-top: 20px; background: #2563eb; color: #fff; border: 0; padding: 13px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; }
-  .box button:active { background: #1d4ed8; }
-  .box button:disabled { background: #93c5fd; }
-  .err { display: none; margin-top: 14px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 10px 12px; border-radius: 10px; font-size: 13px; text-align: center; }
+  /* ===================== LOGIN ===================== */
+  #loginView { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 22px;
+    background: radial-gradient(120% 120% at 0% 0%, #6366f1 0%, #4f46e5 38%, #3730a3 100%); }
+  .login-card { background: var(--card); width: 100%; max-width: 390px; border-radius: 26px; padding: 34px 28px 30px;
+    box-shadow: 0 24px 60px rgba(20,20,60,.32); }
+  .brand { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
+  .brand .mark { width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 32px; background: linear-gradient(135deg, #6366f1, #7c3aed); box-shadow: 0 10px 24px rgba(99,102,241,.4); margin-bottom: 14px; }
+  .brand h1 { font-size: 21px; font-weight: 600; margin: 0; letter-spacing: -.3px; }
+  .brand p { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; color: #5b617a; font-weight: 500; margin-bottom: 6px; }
+  .field input { width: 100%; padding: 13px 15px; border: 1.5px solid var(--line); border-radius: 14px; font-size: 15px;
+    color: var(--ink); font-family: inherit; background: #fbfbfe; transition: border-color .15s, background .15s; }
+  .field input:focus { outline: none; border-color: var(--primary); background: #fff; }
+  .login-btn { width: 100%; margin-top: 8px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; border: 0;
+    padding: 15px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit;
+    box-shadow: 0 10px 22px rgba(79,70,229,.32); transition: transform .1s, opacity .15s; }
+  .login-btn:active { transform: scale(.985); }
+  .login-btn:disabled { opacity: .6; }
+  .err { display: none; margin-top: 14px; background: #fef2f2; color: #c0322f; border: 1px solid #fbd5d3;
+    padding: 11px 13px; border-radius: 12px; font-size: 13px; text-align: center; }
   .err.show { display: block; }
-  .hint { margin-top: 18px; font-size: 11px; color: #94a3b8; text-align: center; line-height: 1.6; }
+  .login-hint { margin-top: 18px; font-size: 11.5px; color: #aab0c2; text-align: center; line-height: 1.6; }
 
-  /* ===== HUB VIEW ===== */
+  /* ===================== HUB ===================== */
   #hubView { display: none; }
-  header { background: linear-gradient(90deg, #1d4ed8, #312e81); color: #fff; padding: 22px 16px; box-shadow: 0 2px 14px rgba(0,0,0,.14); }
-  .hd { max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
-  .hd .ico { font-size: 30px; }
-  header h1 { font-size: 20px; margin: 0; font-weight: 800; }
-  header p { font-size: 12px; margin: 3px 0 0; color: #c7d2fe; }
-  .logout { margin-left: auto; background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.3); padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
-  .who { max-width: 900px; margin: 16px auto 0; padding: 0 16px; display: flex; align-items: center; gap: 10px; }
-  .ava { width: 40px; height: 40px; border-radius: 50%; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  .who .nm { font-weight: 700; color: #0f172a; }
-  .who .role { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
-  .role.admin { background: #fef3c7; color: #92400e; }
-  .role.employee { background: #dbeafe; color: #1d4ed8; }
-  .wrap { max-width: 900px; margin: 0 auto; padding: 0 16px 60px; }
-  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 18px; }
-  @media (min-width: 600px) { .grid { grid-template-columns: 1fr 1fr; } }
-  a.tile { text-decoration: none; color: inherit; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 22px; display: flex; gap: 16px; align-items: flex-start; transition: transform .12s, box-shadow .12s, border-color .12s; }
-  a.tile:active { transform: scale(.98); }
-  a.tile:hover { box-shadow: 0 6px 20px rgba(30,64,175,.12); border-color: #c7d2fe; }
-  .tile .badge { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
-  .b1 { background: #dbeafe; } .b2 { background: #dcfce7; } .b3 { background: #ede9fe; } .b4 { background: #ffedd5; }
-  .tile h2 { font-size: 16px; margin: 2px 0 4px; color: #0f172a; }
-  .tile p { font-size: 12px; margin: 0; color: #64748b; line-height: 1.5; }
-  .arrow { margin-left: auto; color: #cbd5e1; font-size: 20px; align-self: center; }
-  footer { text-align: center; font-size: 11px; color: #94a3b8; margin-top: 26px; }
+  .appbar { position: sticky; top: 0; z-index: 20; background: rgba(246,247,251,.82);
+    backdrop-filter: saturate(160%) blur(12px); -webkit-backdrop-filter: saturate(160%) blur(12px);
+    border-bottom: 1px solid var(--line); }
+  .appbar-in { max-width: 760px; margin: 0 auto; padding: 13px 18px; display: flex; align-items: center; gap: 12px; }
+  .appbar .mark { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; background: linear-gradient(135deg, #6366f1, #7c3aed); box-shadow: 0 6px 14px rgba(99,102,241,.35); }
+  .appbar .name { font-weight: 600; font-size: 16px; letter-spacing: -.2px; line-height: 1.1; }
+  .appbar .tag { font-size: 11px; color: var(--muted); }
+  .logout { margin-left: auto; background: #fff; border: 1px solid var(--line); color: #5b617a;
+    width: 40px; height: 40px; border-radius: 12px; cursor: pointer; font-size: 17px; display: flex; align-items: center; justify-content: center; }
+  .logout:active { background: #f1f2f7; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 18px 18px 70px; }
+  .hello { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; border-radius: 22px; padding: 22px 22px;
+    box-shadow: 0 14px 30px rgba(79,70,229,.28); position: relative; overflow: hidden; }
+  .hello::after { content: ""; position: absolute; right: -30px; top: -30px; width: 130px; height: 130px;
+    background: rgba(255,255,255,.12); border-radius: 50%; }
+  .hello .hi { font-size: 14px; opacity: .9; }
+  .hello .who { font-size: 22px; font-weight: 600; margin-top: 2px; letter-spacing: -.3px; }
+  .hello .chip { display: inline-block; margin-top: 12px; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+    padding: 5px 13px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+
+  .section-title { font-size: 13px; font-weight: 600; color: #9298ab; margin: 26px 4px 12px; letter-spacing: .2px; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 560px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  a.tile { text-decoration: none; color: inherit; background: var(--card); border: 1px solid var(--line);
+    border-radius: 20px; padding: 17px; display: flex; gap: 15px; align-items: center; box-shadow: var(--shadow);
+    transition: transform .12s ease, box-shadow .15s ease; }
+  a.tile:active { transform: scale(.975); }
+  a.tile:hover { box-shadow: 0 10px 30px rgba(40,44,80,.12); }
+  .tile .badge { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center;
+    font-size: 25px; flex-shrink: 0; }
+  .c-blue { background: #e8edff; } .c-green { background: #e2f7ee; } .c-violet { background: #efe9fe; }
+  .c-amber { background: #fff1de; } .c-rose { background: #ffe9ee; } .c-cyan { background: #e1f6fb; }
+  .tile .t { font-size: 15.5px; font-weight: 600; letter-spacing: -.2px; }
+  .tile .d { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+  .tile .chev { margin-left: auto; color: #cfd3e0; font-size: 22px; }
+  footer { text-align: center; font-size: 11px; color: #b7bccb; margin-top: 30px; }
 </style>
 </head>
 <body>
 
-  <!-- ========== หน้าล็อกอิน ========== -->
+  <!-- ========== ล็อกอิน ========== -->
   <div id="loginView">
-    <div class="box">
-      <div class="logo">🛡️</div>
-      <h1>Smart HR &amp; Payroll</h1>
-      <p class="sub">เข้าสู่ระบบเพื่อใช้งาน</p>
-      <label>ชื่อผู้ใช้ (username)</label>
-      <input type="text" id="username" autocomplete="username" placeholder="เช่น admin">
-      <label>รหัสผ่าน</label>
-      <input type="password" id="password" autocomplete="current-password" placeholder="รหัสผ่าน">
-      <button id="btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-card">
+      <div class="brand">
+        <div class="mark">🪪</div>
+        <h1>Smart HR &amp; Payroll</h1>
+        <p>ระบบบริหารงานบุคคล</p>
+      </div>
+      <div class="field">
+        <label>ชื่อผู้ใช้</label>
+        <input type="text" id="username" autocomplete="username" placeholder="กรอกชื่อผู้ใช้">
+      </div>
+      <div class="field">
+        <label>รหัสผ่าน</label>
+        <input type="password" id="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน">
+      </div>
+      <button class="login-btn" id="btn" onclick="doLogin()">เข้าสู่ระบบ</button>
       <div id="err" class="err"></div>
-      <div class="hint">ครั้งแรกให้สร้างแท็บ Users ในชีต แล้วเพิ่มผู้ใช้ก่อน</div>
+      <div class="login-hint">ใช้บัญชีที่ผู้ดูแลระบบสร้างให้</div>
     </div>
   </div>
 
-  <!-- ========== หน้าเมนูหลัก ========== -->
+  <!-- ========== หน้าหลัก ========== -->
   <div id="hubView">
-    <header>
-      <div class="hd">
-        <span class="ico">🛡️</span>
+    <div class="appbar">
+      <div class="appbar-in">
+        <div class="mark">🪪</div>
         <div>
-          <h1>Smart HR &amp; Payroll</h1>
-          <p>ระบบบริหารบุคคล · เชื่อม Google Sheet</p>
+          <div class="name">Smart HR</div>
+          <div class="tag">ระบบบริหารงานบุคคล</div>
         </div>
-        <button class="logout" onclick="logout()">ออกจากระบบ</button>
+        <button class="logout" onclick="logout()" title="ออกจากระบบ">⏻</button>
       </div>
-    </header>
-    <div class="who">
-      <div class="ava" id="ava">👤</div>
-      <div><span class="nm" id="whoName">—</span> <span class="role" id="whoRole">—</span></div>
     </div>
     <div class="wrap">
-      <div class="grid" id="menu"></div>
-      <footer>Smart HR &amp; Payroll · หน้าหลัก</footer>
+      <div class="hello">
+        <div class="hi">ยินดีต้อนรับ 👋</div>
+        <div class="who" id="whoName">—</div>
+        <span class="chip" id="whoRole">—</span>
+      </div>
+      <div id="menu"></div>
+      <footer>Smart HR &amp; Payroll</footer>
     </div>
   </div>
 
 <script>
 var API_URL = 'https://script.google.com/macros/s/AKfycbx0Fh8WgXqNHemrXy2lXZSj9oLZ_hZd1lHLGii87Zze_cAfIWBKcYl459Ex6HKO5Jbq/exec';
 
-var TILES_ADMIN = [
-  { href: 'attendance.html', b: 'b1', icon: '⏱️', t: 'ลงเวลาทำงาน', d: 'บันทึกเข้า–ออก คำนวณสาย/ชดเชย/ค่าปรับ' },
-  { href: 'employees.html', b: 'b2', icon: '👥', t: 'ทะเบียนพนักงาน', d: 'ข้อมูลพนักงาน เงินเดือน ยอดสะสมยกมา' },
-  { href: 'requests.html', b: 'b3', icon: '📅', t: 'ใบลา / WFH', d: 'อนุมัติ/ปฏิเสธ และนับโควต้า' },
-  { href: 'payroll.html', b: 'b4', icon: '🧧', t: 'เงินเดือน + โบนัสตรุษจีน', d: 'คิดเงินเดือนสุทธิ ออกสลิป' },
-  { href: 'users.html', b: 'b3', icon: '🔐', t: 'จัดการผู้ใช้', d: 'เพิ่ม/ลบ/รีเซ็ตรหัส บัญชีเข้าระบบ' },
-  { href: 'import.html', b: 'b1', icon: '📥', t: 'นำเข้าเวลาตอกบัตร', d: 'อัปไฟล์จากเครื่องสแกน ลงตารางอัตโนมัติ' },
-  { href: 'holidays.html', b: 'b2', icon: '📅', t: 'วันหยุดประจำปี', d: 'ตั้งวันหยุดนักขัตฤกษ์ / วันหยุดพิเศษ' },
-  { href: 'check.html', b: 'b4', icon: '🔍', t: 'ตรวจสอบข้อมูล', d: 'หาชื่อที่ไม่ตรงทะเบียน (ข้อมูลไม่ลิงก์)' }
+var GROUPS_ADMIN = [
+  { title: 'งานประจำวัน', items: [
+    { href: 'attendance.html', c: 'c-blue', icon: '⏱️', t: 'ลงเวลาทำงาน', d: 'บันทึกเข้า–ออก คำนวณสาย/ค่าปรับ' },
+    { href: 'requests.html', c: 'c-violet', icon: '📅', t: 'ใบลา / WFH', d: 'อนุมัติ ปฏิเสธ และนับโควต้า' },
+    { href: 'payroll.html', c: 'c-rose', icon: '🧧', t: 'เงินเดือน', d: 'คิดเงินเดือนสุทธิ ออกสลิป' },
+    { href: 'employees.html', c: 'c-green', icon: '👥', t: 'ทะเบียนพนักงาน', d: 'ข้อมูลพนักงาน กะ OT ยอดยกมา' }
+  ]},
+  { title: 'เครื่องมือ & ตั้งค่า', items: [
+    { href: 'import.html', c: 'c-cyan', icon: '📥', t: 'นำเข้าเวลาตอกบัตร', d: 'อัปไฟล์จากเครื่องสแกน' },
+    { href: 'holidays.html', c: 'c-amber', icon: '📅', t: 'วันหยุดประจำปี', d: 'วันหยุดนักขัตฤกษ์ / พิเศษ' },
+    { href: 'users.html', c: 'c-violet', icon: '🔐', t: 'จัดการผู้ใช้', d: 'เพิ่ม ลบ รีเซ็ตรหัสผ่าน' },
+    { href: 'check.html', c: 'c-blue', icon: '🔍', t: 'ตรวจสอบข้อมูล', d: 'หาชื่อที่ไม่ตรงทะเบียน' }
+  ]}
 ];
-var TILES_EMP = [
-  { href: 'attendance.html', b: 'b1', icon: '⏱️', t: 'ลงเวลาของฉัน', d: 'บันทึกเวลาเข้า–ออกงาน' },
-  { href: 'requests.html', b: 'b3', icon: '📅', t: 'ยื่นใบลา / WFH', d: 'ส่งคำร้องขอลาหรือทำงานที่บ้าน' }
+var GROUPS_EMP = [
+  { title: 'เมนูของฉัน', items: [
+    { href: 'attendance.html', c: 'c-blue', icon: '⏱️', t: 'ลงเวลาของฉัน', d: 'บันทึกเวลาเข้า–ออกงาน' },
+    { href: 'requests.html', c: 'c-violet', icon: '📅', t: 'ยื่นใบลา / WFH', d: 'ขอลาหรือทำงานที่บ้าน' }
+  ]}
 ];
 
-/* ===== แสดงหน้าตามสถานะล็อกอิน ===== */
 function getUser() { try { return JSON.parse(localStorage.getItem('hr_user') || 'null'); } catch (e) { return null; } }
+
+function tileHTML(x) {
+  return '<a class="tile" href="' + x.href + '"><div class="badge ' + x.c + '">' + x.icon + '</div>' +
+    '<div><div class="t">' + x.t + '</div><div class="d">' + x.d + '</div></div><span class="chev">\u203a</span></a>';
+}
 
 function showHub(user) {
   document.getElementById('loginView').style.display = 'none';
   document.getElementById('hubView').style.display = 'block';
   var isAdmin = (String(user.role).trim().toLowerCase() === 'admin');
   document.getElementById('whoName').textContent = user.name || (isAdmin ? 'ผู้ดูแลระบบ' : 'พนักงาน');
-  var roleEl = document.getElementById('whoRole');
-  roleEl.textContent = isAdmin ? 'ผู้ดูแลระบบ (Admin)' : 'พนักงาน (Employee)';
-  roleEl.className = 'role ' + (isAdmin ? 'admin' : 'employee');
-  document.getElementById('ava').textContent = isAdmin ? '🛠️' : '👤';
-  var tiles = isAdmin ? TILES_ADMIN : TILES_EMP, html = '';
-  for (var i = 0; i < tiles.length; i++) {
-    var x = tiles[i];
-    html += '<a class="tile" href="' + x.href + '"><div class="badge ' + x.b + '">' + x.icon + '</div>' +
-      '<div><h2>' + x.t + '</h2><p>' + x.d + '</p></div><span class="arrow">\u203a</span></a>';
+  document.getElementById('whoRole').textContent = isAdmin ? '🛠️ ผู้ดูแลระบบ' : '👤 พนักงาน';
+
+  var groups = isAdmin ? GROUPS_ADMIN : GROUPS_EMP, html = '';
+  for (var g = 0; g < groups.length; g++) {
+    html += '<div class="section-title">' + groups[g].title + '</div><div class="grid">';
+    for (var i = 0; i < groups[g].items.length; i++) html += tileHTML(groups[g].items[i]);
+    html += '</div>';
   }
   document.getElementById('menu').innerHTML = html;
 }
@@ -138,10 +183,8 @@ function showLogin() {
   document.getElementById('hubView').style.display = 'none';
   document.getElementById('loginView').style.display = 'flex';
 }
-
 function logout() { try { localStorage.removeItem('hr_user'); } catch (e) {} showLogin(); }
 
-/* ===== ล็อกอิน ===== */
 function showErr(t) { var el = document.getElementById('err'); el.textContent = t; el.className = 'err show'; }
 function setBusy(b) { var btn = document.getElementById('btn'); btn.disabled = b; btn.textContent = b ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'; }
 
@@ -177,7 +220,6 @@ function checkSession(nonce, tries) {
   document.body.appendChild(script);
 }
 
-/* ===== เริ่มต้น ===== */
 (function init() {
   var pw = document.getElementById('password');
   if (pw) pw.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
