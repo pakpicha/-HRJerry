@@ -116,7 +116,7 @@
 
   <div class="card">
     <h2>สรุปโควต้าที่ใช้ไป (เฉพาะที่อนุมัติแล้ว)</h2>
-    <p class="sub" style="margin-bottom:10px">วันลารวม (ป่วย+กิจ+พักร้อน นับรวมกัน) · WFH ตามที่ตั้งในทะเบียน</p>
+    <p class="sub" style="margin-bottom:10px">วันลารวม (ป่วย+กิจ+พักร้อน นับรวมกันทั้งปี) · WFH นับเฉพาะสัปดาห์ปัจจุบัน (จ–อา) เทียบโควต้า/สัปดาห์</p>
     <div id="quotaWrap"></div>
   </div>
 
@@ -294,16 +294,17 @@ function renderQuota() {
     var name = EMPLOYEES[i][1];
     if (!IS_ADMIN && String(name) !== String(ME.name)) continue;
     var wfhQ = parseInt(EMPLOYEES[i][5], 10) || 0;
+    var wk = weekRange();
     var leave = 0, w = 0;
     for (var j = 0; j < REQUESTS.length; j++) {
       var r = REQUESTS[j];
       if (String(r[1]) !== String(name)) continue;
       if (String(r[7]) !== 'approved') continue;
-      var d = parseInt(r[5], 10) || 0;
-      if (r[2] === 'wfh') w += d; else leave += d;
+      if (r[2] === 'wfh') { w += daysInWeek(r[3], r[4], wk); }
+      else { leave += parseInt(r[5], 10) || 0; }
     }
     html += '<div class="qrow"><span style="font-weight:600">' + esc(name) + '</span><span class="qchips">' +
-      chip('วันลา', leave, LEAVE_Q) + chip('WFH', w, wfhQ) +
+      chip('วันลา', leave, LEAVE_Q) + chip('WFH/สัปดาห์นี้', w, wfhQ) +
       '</span></div>';
   }
   wrap.innerHTML = html;
@@ -311,6 +312,25 @@ function renderQuota() {
 function chip(label, used, total) {
   var cls = (total > 0 && used >= total) ? 'chip warn' : 'chip';
   return '<span class="' + cls + '">' + label + ' ' + used + '/' + total + '</span>';
+}
+function weekRange() {
+  var now = new Date();
+  var day = now.getDay();
+  var diffToMon = (day === 0 ? -6 : 1 - day);
+  var mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon);
+  var sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+  return { start: mon, end: sun };
+}
+function pd(s) { var p = String(s).slice(0, 10).split('-'); return (p.length === 3) ? new Date(+p[0], +p[1] - 1, +p[2]) : null; }
+function daysInWeek(start, end, wk) {
+  var s = pd(start), e = pd(end);
+  if (!s || !e) return 0;
+  var cur = new Date(s), cnt = 0, guard = 0;
+  while (cur <= e && guard < 366) {
+    if (cur >= wk.start && cur <= wk.end) cnt++;
+    cur.setDate(cur.getDate() + 1); guard++;
+  }
+  return cnt;
 }
 
 (function init() {
